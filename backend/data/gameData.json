@@ -1,0 +1,14 @@
+{
+  "players": {
+    "Brandon": { "handicap": 0, "handicapLongs": 3, "wins": 3 },
+    "Caleb": { "handicap": -16, "wins": 1 },
+    "Josh": { "handicap": -9, "wins": 3 },
+    "Stack": { "handicap": -12, "wins": 2 }
+  },
+  "rounds": [
+    { "date": "2026-07-26", "course": "Vet Memorial", "layout": "Shorts", "winner": "Josh", "scores": {}, "totals": {}, "netScores": {} },
+    { "date": "2026-07-12", "course": "Lobdell", "layout": "Shorts", "winner": "Josh", "scores": {}, "totals": {}, "netScores": {} },
+    { "date": "2026-06-27", "course": "Alum", "layout": "Shorts", "winner": "Brandon", "scores": {}, "totals": {}, "netScores": {} },
+    { "date": "2026-06-23", "course": "Brent", "layout": "Shorts", "winner": "Brandon", "scores": {}, "totals": {}, "netScores": {} }
+  ]
+}
