@@ -299,88 +299,100 @@
 
             <!-- ── VIEW MODE ── -->
             <template v-else>
-              <!-- Header row (always visible, clickable to expand) -->
+              <!-- Header (two-line, clickable) -->
               <div
-                style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; user-select: none;"
+                style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none;"
                 @click="toggleRound(round.id)"
               >
                 <!-- Chevron -->
                 <svg
-                  :style="{ transform: expandedRounds[round.id] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }"
-                  width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  :style="{ transform: expandedRounds[round.id] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0, marginTop: '3px' }"
+                  width="13" height="13" viewBox="0 0 24 24" fill="none"
                 >
                   <path d="M9 18l6-6-6-6" stroke="rgba(201,205,196,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
 
-                <!-- Course -->
-                <span style="font-family: Oswald, sans-serif; font-size: 15px; color: #EFE9DA; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                  {{ round.course || 'Unknown' }}
-                </span>
-
-                <!-- Winner -->
-                <span style="font-family: Inter, sans-serif; font-size: 13px; color: #D9A404; font-weight: 600; flex-shrink: 0;">
-                  🏆 {{ round.winner || '—' }}
-                </span>
-
-                <!-- Date -->
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.45); flex-shrink: 0;">
-                  {{ round.date ? formatDate(round.date) : '—' }}
-                </span>
-
-                <!-- Layout badge -->
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 3px; flex-shrink: 0;"
-                  :style="{ background: round.layout === 'Longs' ? 'rgba(217,164,4,0.2)' : 'rgba(201,205,196,0.1)', color: round.layout === 'Longs' ? '#D9A404' : 'rgba(201,205,196,0.6)' }">
-                  {{ round.layout || 'Shorts' }}
-                </span>
+                <!-- Course + meta -->
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
+                    <span style="font-family: Oswald, sans-serif; font-size: 15px; color: #EFE9DA; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      {{ round.course || 'Unknown' }}
+                    </span>
+                    <span
+                      style="font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; flex-shrink: 0;"
+                      :style="{ background: round.layout === 'Longs' ? 'rgba(217,164,4,0.2)' : 'rgba(201,205,196,0.1)', color: round.layout === 'Longs' ? '#D9A404' : 'rgba(201,205,196,0.55)' }"
+                    >{{ round.layout || 'Shorts' }}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.4);">
+                      {{ round.date ? formatDate(round.date) : 'Date unknown' }}
+                    </span>
+                    <span v-if="round.winner" style="font-family: Inter, sans-serif; font-size: 12px; color: #D9A404; font-weight: 600;">
+                      🏆 {{ round.winner }}
+                    </span>
+                  </div>
+                </div>
 
                 <!-- Edit button -->
-                <button
-                  @click.stop="startEditRound(round)"
-                  :style="{ ...ghostEditBtn, flexShrink: 0 }"
-                >Edit</button>
+                <button @click.stop="startEditRound(round)" :style="{ ...ghostEditBtn, flexShrink: 0, marginTop: '2px' }">Edit</button>
               </div>
 
               <!-- Expanded scores -->
               <div
                 v-if="expandedRounds[round.id]"
-                style="border-top: 1px solid rgba(201,205,196,0.08); padding: 12px 16px 14px 42px;"
+                style="border-top: 1px solid rgba(201,205,196,0.08); padding: 10px 16px 14px;"
               >
                 <div
                   v-if="!round.scores || Object.keys(round.scores).length === 0"
-                  style="font-family: Inter, sans-serif; font-size: 12px; color: rgba(239,233,218,0.35); font-style: italic;"
+                  style="font-family: Inter, sans-serif; font-size: 12px; color: rgba(239,233,218,0.35); font-style: italic; padding: 4px 0;"
                 >
                   No scores recorded — click Edit to add them.
                 </div>
                 <div v-else>
                   <!-- Column headers -->
-                  <div style="display: grid; grid-template-columns: 1.2fr 52px 48px 52px 48px; gap: 0; margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid rgba(201,205,196,0.07);">
-                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px;"></span>
+                  <div style="display: grid; grid-template-columns: 1fr 56px 56px 48px 48px; gap: 0; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(201,205,196,0.07);">
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px;">PLAYER</span>
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; text-align: center; font-weight: 600;">NET</span>
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">GROSS</span>
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">HCP</span>
-                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">NET</span>
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">TOT</span>
                   </div>
+                  <!-- Player rows sorted by net score -->
                   <div
-                    v-for="[name, score] in sortedScores(round.scores)"
+                    v-for="[name, score] in sortedRoundPlayers(round)"
                     :key="name"
-                    style="display: grid; grid-template-columns: 1.2fr 52px 48px 52px 48px; gap: 0; align-items: center; padding: 3px 0;"
+                    :style="{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 56px 56px 48px 48px',
+                      gap: '0',
+                      alignItems: 'center',
+                      padding: '6px 8px',
+                      marginLeft: '-8px',
+                      marginRight: '-8px',
+                      borderRadius: '4px',
+                      background: name === round.winner ? 'rgba(217,164,4,0.08)' : 'transparent',
+                    }"
                   >
-                    <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '600' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
+                    <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '700' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.8)' }">
                       {{ name }}
                     </span>
-                    <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontSize: '13px', textAlign: 'center', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
-                      {{ formatScore(score) }}
-                    </span>
-                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.4);">
-                      {{ round.handicaps?.[name] !== undefined ? formatHcp(round.handicaps[name]) : '—' }}
-                    </span>
-                    <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontWeight: '700', fontSize: '13px', textAlign: 'center', color: name === round.winner ? '#D9A404' : '#3E6B49' }">
+                    <!-- NET — most important, displayed first and boldest -->
+                    <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontWeight: '700', fontSize: '14px', textAlign: 'center', color: name === round.winner ? '#D9A404' : '#3E6B49' }">
                       {{ round.netScores?.[name] !== undefined
                           ? formatScore(round.netScores[name])
                           : round.handicaps?.[name] !== undefined
                             ? formatScore(score + round.handicaps[name])
                             : '—' }}
                     </span>
+                    <!-- GROSS -->
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.55);">
+                      {{ formatScore(score) }}
+                    </span>
+                    <!-- HCP -->
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.35);">
+                      {{ round.handicaps?.[name] !== undefined ? formatHcp(round.handicaps[name]) : '—' }}
+                    </span>
+                    <!-- TOT -->
                     <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.35);">
                       {{ round.totals?.[name] ?? '—' }}
                     </span>
@@ -946,6 +958,14 @@ const cancelBtn = {
 
 function sortedScores(scores) {
   return Object.entries(scores).sort((a, b) => a[1] - b[1]);
+}
+
+function sortedRoundPlayers(round) {
+  return Object.entries(round.scores).sort(([nameA, grossA], [nameB, grossB]) => {
+    const netA = round.netScores?.[nameA] ?? (round.handicaps?.[nameA] !== undefined ? grossA + round.handicaps[nameA] : grossA);
+    const netB = round.netScores?.[nameB] ?? (round.handicaps?.[nameB] !== undefined ? grossB + round.handicaps[nameB] : grossB);
+    return netA - netB;
+  });
 }
 </script>
 
