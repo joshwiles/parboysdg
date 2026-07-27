@@ -166,12 +166,6 @@
             </div>
           </div>
 
-          <!-- Footer note -->
-          <div style="padding: 10px 16px; border-top: 1px solid rgba(201,205,196,0.08);">
-            <p style="margin: 0; font-family: Inter, sans-serif; font-size: 11px; color: rgba(239,233,218,0.7); line-height: 1.5;">
-              Handicap adjusts after each round — anchor player wins → everyone else drops 1. Non-anchor wins → winner gains 1 toward 0.
-            </p>
-          </div>
         </div>
       </div>
 
