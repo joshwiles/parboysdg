@@ -217,11 +217,18 @@
               </select>
             </div>
           </div>
-          <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 8px;">SCORES (+/- to par · total strokes)</div>
+          <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 8px;">SCORES</div>
+          <div style="display: grid; grid-template-columns: 1fr 65px 65px 65px; gap: 8px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid rgba(201,205,196,0.08);">
+            <span></span>
+            <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); text-align: center;">GROSS</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); text-align: center;">HCP</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); text-align: center;">TOTAL</span>
+          </div>
           <div style="display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px;">
-            <div v-for="name in Object.keys(data.players)" :key="name" style="display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; align-items: center;">
+            <div v-for="name in Object.keys(data.players)" :key="name" style="display: grid; grid-template-columns: 1fr 65px 65px 65px; gap: 8px; align-items: center;">
               <span style="font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.8);">{{ name }}</span>
               <input type="number" placeholder="+/-" v-model="roundEditForm.scores[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
+              <input type="number" placeholder="hcp" v-model="roundEditForm.handicaps[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
               <input type="number" placeholder="total" v-model="roundEditForm.totals[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
             </div>
           </div>
@@ -263,15 +270,22 @@
                 </div>
               </div>
 
-              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 8px;">SCORES (+/- to par · total strokes)</div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 8px;">SCORES</div>
+              <div style="display: grid; grid-template-columns: 1fr 65px 65px 65px; gap: 8px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid rgba(201,205,196,0.08);">
+                <span></span>
+                <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); text-align: center;">GROSS</span>
+                <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); text-align: center;">HCP</span>
+                <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); text-align: center;">TOTAL</span>
+              </div>
               <div style="display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px;">
                 <div
                   v-for="name in Object.keys(data.players)"
                   :key="name"
-                  style="display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; align-items: center;"
+                  style="display: grid; grid-template-columns: 1fr 65px 65px 65px; gap: 8px; align-items: center;"
                 >
                   <span style="font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.8);">{{ name }}</span>
                   <input type="number" :placeholder="'+/-'" v-model="roundEditForm.scores[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
+                  <input type="number" :placeholder="'hcp'" v-model="roundEditForm.handicaps[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
                   <input type="number" :placeholder="'total'" v-model="roundEditForm.totals[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
                 </div>
               </div>
@@ -337,21 +351,42 @@
                 >
                   No scores recorded — click Edit to add them.
                 </div>
-                <div v-else style="display: flex; flex-direction: column; gap: 5px;">
+                <div v-else>
+                  <!-- Column headers -->
+                  <div style="display: grid; grid-template-columns: 1.2fr 58px 52px 58px; gap: 0; margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid rgba(201,205,196,0.07);">
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px;"></span>
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">GROSS</span>
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">HCP</span>
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">NET</span>
+                  </div>
                   <div
                     v-for="[name, score] in sortedScores(round.scores)"
                     :key="name"
-                    style="display: flex; align-items: baseline; justify-content: space-between;"
+                    style="display: grid; grid-template-columns: 1.2fr 58px 52px 58px; gap: 0; align-items: center; padding: 3px 0;"
                   >
                     <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '600' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
                       {{ name }}
                     </span>
-                    <div style="display: flex; align-items: baseline; gap: 8px;">
-                      <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontSize: '13px', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
-                        {{ formatScore(score) }}
-                      </span>
-                      <span v-if="round.totals && round.totals[name] !== undefined" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.3);">
-                        ({{ round.totals[name] }})
+                    <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontSize: '13px', textAlign: 'center', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
+                      {{ formatScore(score) }}
+                    </span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.4);">
+                      {{ round.handicaps?.[name] !== undefined ? formatHcp(round.handicaps[name]) : '—' }}
+                    </span>
+                    <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontWeight: '700', fontSize: '13px', textAlign: 'center', color: name === round.winner ? '#D9A404' : '#3E6B49' }">
+                      {{ round.netScores?.[name] !== undefined
+                          ? formatScore(round.netScores[name])
+                          : round.handicaps?.[name] !== undefined
+                            ? formatScore(score + round.handicaps[name])
+                            : '—' }}
+                    </span>
+                  </div>
+                  <!-- Total strokes -->
+                  <div v-if="round.totals && Object.values(round.totals).some(v => v != null)" style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(201,205,196,0.07);">
+                    <div style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; margin-bottom: 4px;">TOTAL STROKES</div>
+                    <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+                      <span v-for="[name] in sortedScores(round.scores)" :key="name" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.35);">
+                        {{ name }}: {{ round.totals?.[name] ?? '—' }}
                       </span>
                     </div>
                   </div>
@@ -471,7 +506,7 @@
               </div>
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
-                <select v-model="previewForm.layout" :style="editInput">
+                <select v-model="previewForm.layout" :style="editInput" @change="reinitPreviewHcps">
                   <option>Shorts</option>
                   <option>Longs</option>
                 </select>
@@ -488,7 +523,7 @@
           <!-- Scores table -->
           <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;">
             <!-- Header -->
-            <div style="display: grid; grid-template-columns: 1.2fr 80px 70px 80px; gap: 0; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
+            <div style="display: grid; grid-template-columns: 1.2fr 80px 80px 80px; gap: 0; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
               <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYER</span>
               <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">GROSS</span>
               <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">HCP</span>
@@ -500,7 +535,7 @@
               :key="name"
               :style="{
                 display: 'grid',
-                gridTemplateColumns: '1.2fr 80px 70px 80px',
+                gridTemplateColumns: '1.2fr 80px 80px 80px',
                 gap: '0',
                 padding: '10px 16px',
                 alignItems: 'center',
@@ -517,11 +552,14 @@
                 :style="{ ...editInput, textAlign: 'center', marginBottom: 0, width: '100%' }"
                 @input="autoSetWinner"
               />
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.5); text-align: center;">
-                {{ formatHcp(getHcp(name, previewForm.layout)) }}
-              </span>
+              <input
+                type="number"
+                v-model.number="previewForm.handicaps[name]"
+                :style="{ ...editInput, textAlign: 'center', marginBottom: 0, width: '100%' }"
+                @input="autoSetWinner"
+              />
               <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontWeight: '700', fontSize: '14px', textAlign: 'center', color: previewForm.winner === name ? '#D9A404' : '#3E6B49' }">
-                {{ previewForm.scores[name] !== '' ? formatScore(Number(previewForm.scores[name]) + getHcp(name, previewForm.layout)) : '—' }}
+                {{ previewForm.scores[name] !== '' && previewForm.handicaps[name] !== undefined ? formatScore(Number(previewForm.scores[name]) + previewForm.handicaps[name]) : '—' }}
               </span>
             </div>
             <!-- Totals row -->
@@ -567,7 +605,7 @@ const uploadError = ref('');
 const fileInput = ref(null);
 const activeTab = ref('board');
 const preview = ref(null);
-const previewForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {} });
+const previewForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} });
 
 const tabs = [
   ['board', 'Leaderboard'],
@@ -608,6 +646,10 @@ async function handleFileChange(e) {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     preview.value = res.data;
+    const hcps = {};
+    for (const name of Object.keys(res.data.scores)) {
+      hcps[name] = getHcp(name, res.data.layout);
+    }
     previewForm.value = {
       course: res.data.course,
       date: res.data.date,
@@ -615,6 +657,7 @@ async function handleFileChange(e) {
       winner: res.data.winner,
       scores: { ...res.data.scores },
       totals: { ...res.data.totals },
+      handicaps: hcps,
     };
   } catch (err) {
     uploadError.value = err.response?.data?.error || 'Failed to parse CSV';
@@ -637,10 +680,20 @@ function autoSetWinner() {
   let winner = previewForm.value.winner;
   for (const [name, gross] of Object.entries(previewForm.value.scores)) {
     if (gross === '' || gross === null || gross === undefined) continue;
-    const net = Number(gross) + getHcp(name, previewForm.value.layout);
+    const hcp = previewForm.value.handicaps[name] ?? getHcp(name, previewForm.value.layout);
+    const net = Number(gross) + hcp;
     if (net < best) { best = net; winner = name; }
   }
   previewForm.value.winner = winner;
+}
+
+function reinitPreviewHcps() {
+  const hcps = {};
+  for (const name of Object.keys(previewForm.value.scores)) {
+    hcps[name] = getHcp(name, previewForm.value.layout);
+  }
+  previewForm.value.handicaps = hcps;
+  autoSetWinner();
 }
 
 async function confirmRound() {
@@ -652,7 +705,8 @@ async function confirmRound() {
     for (const [name, val] of Object.entries(previewForm.value.scores)) {
       if (val !== '' && val !== null && val !== undefined) {
         cleanScores[name] = Number(val);
-        cleanNets[name] = Number(val) + getHcp(name, previewForm.value.layout);
+        const hcp = previewForm.value.handicaps[name] ?? getHcp(name, previewForm.value.layout);
+        cleanNets[name] = Number(val) + hcp;
       }
     }
     for (const [name, val] of Object.entries(previewForm.value.totals)) {
@@ -666,6 +720,7 @@ async function confirmRound() {
       scores: cleanScores,
       totals: cleanTotals,
       netScores: cleanNets,
+      handicaps: { ...previewForm.value.handicaps },
     });
     await fetchData();
     toast.value = `Round submitted! ${previewForm.value.winner} wins!`;
@@ -681,7 +736,7 @@ async function confirmRound() {
 
 function cancelPreview() {
   preview.value = null;
-  previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {} };
+  previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} };
 }
 
 const playerStats = computed(() => {
@@ -731,7 +786,7 @@ const editForm = ref({ wins: 0, handicap: 0, handicapLongs: 0 });
 
 const expandedRounds = ref({});
 const editingRound = ref(null);
-const roundEditForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {} });
+const roundEditForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} });
 
 function toggleRound(id) {
   expandedRounds.value = { ...expandedRounds.value, [id]: !expandedRounds.value[id] };
@@ -740,9 +795,11 @@ function toggleRound(id) {
 function startEditRound(round) {
   const scores = {};
   const totals = {};
+  const handicaps = {};
   for (const name of Object.keys(data.value.players)) {
     scores[name] = round.scores?.[name] ?? '';
     totals[name] = round.totals?.[name] ?? '';
+    handicaps[name] = round.handicaps?.[name] ?? getHcp(name, round.layout || 'Shorts');
   }
   roundEditForm.value = {
     course: round.course || '',
@@ -751,6 +808,7 @@ function startEditRound(round) {
     winner: round.winner || '',
     scores,
     totals,
+    handicaps,
   };
   editingRound.value = round.id;
 }
@@ -758,11 +816,13 @@ function startEditRound(round) {
 function startNewRound() {
   const scores = {};
   const totals = {};
+  const handicaps = {};
   for (const name of Object.keys(data.value.players)) {
     scores[name] = '';
     totals[name] = '';
+    handicaps[name] = getHcp(name, 'Shorts');
   }
-  roundEditForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores, totals };
+  roundEditForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores, totals, handicaps };
   editingRound.value = '__new__';
 }
 
@@ -776,6 +836,10 @@ async function saveRound(id) {
     for (const [name, val] of Object.entries(roundEditForm.value.totals)) {
       if (val !== '' && val !== null && val !== undefined) cleanTotals[name] = Number(val);
     }
+    const cleanHandicaps = {};
+    for (const [name, val] of Object.entries(roundEditForm.value.handicaps)) {
+      cleanHandicaps[name] = Number(val) || 0;
+    }
     const payload = {
       course: roundEditForm.value.course,
       date: roundEditForm.value.date,
@@ -783,6 +847,7 @@ async function saveRound(id) {
       winner: roundEditForm.value.winner,
       scores: cleanScores,
       totals: cleanTotals,
+      handicaps: cleanHandicaps,
     };
     if (id === '__new__') {
       await axios.post(`${API}/api/rounds`, payload);

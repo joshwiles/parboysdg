@@ -103,17 +103,29 @@ router.post('/preview', upload.single('csv'), (req, res) => {
 
 router.post('/confirm-round', (req, res) => {
   try {
-    const { course, date, layout, winner, scores, totals, netScores } = req.body;
+    const { course, date, layout, winner, scores, totals, netScores, handicaps } = req.body;
     const data = readData();
     const matched = Object.keys(scores || {});
     if (!matched.length) return res.status(400).json({ error: 'No scores provided' });
     if (!data.players[winner]) return res.status(400).json({ error: 'Invalid winner' });
+    // Snapshot handicaps at time of round (before updating them)
+    const savedHandicaps = handicaps || {};
+    if (!handicaps) {
+      const longs = isLongs(layout);
+      for (const name of matched) {
+        if (data.players[name]) {
+          savedHandicaps[name] = (name === 'Brandon' && longs)
+            ? (data.players[name].handicapLongs || 0)
+            : (data.players[name].handicap || 0);
+        }
+      }
+    }
     for (const name of matched) {
       if (data.players[name]) data.players[name].played = (data.players[name].played || 0) + 1;
     }
     data.players[winner].wins = (data.players[winner].wins || 0) + 1;
     data.players = updateHandicaps(winner, data.players);
-    data.rounds.unshift({ id: uid(), date, course, layout, winner, scores, totals: totals || {}, netScores: netScores || {} });
+    data.rounds.unshift({ id: uid(), date, course, layout, winner, scores, totals: totals || {}, netScores: netScores || {}, handicaps: savedHandicaps });
     writeData(data);
     res.json({ success: true, winner, players: data.players });
   } catch (err) {
@@ -123,7 +135,7 @@ router.post('/confirm-round', (req, res) => {
 
 router.post('/rounds', (req, res) => {
   try {
-    const { course, date, layout, winner, scores, totals } = req.body;
+    const { course, date, layout, winner, scores, totals, handicaps } = req.body;
     const data = readData();
     const newRound = {
       id: uid(),
@@ -133,7 +145,8 @@ router.post('/rounds', (req, res) => {
       winner: winner || '',
       scores: scores || {},
       totals: totals || {},
-      netScores: {}
+      netScores: {},
+      handicaps: handicaps || {},
     };
     data.rounds.unshift(newRound);
     writeData(data);
@@ -163,13 +176,14 @@ router.patch('/rounds/:id', (req, res) => {
     const data = readData();
     const idx = data.rounds.findIndex(r => r.id === id);
     if (idx === -1) return res.status(404).json({ error: 'Round not found' });
-    const { course, date, layout, winner, scores, totals } = req.body;
-    if (course  !== undefined) data.rounds[idx].course  = course;
-    if (date    !== undefined) data.rounds[idx].date    = date;
-    if (layout  !== undefined) data.rounds[idx].layout  = layout;
-    if (winner  !== undefined) data.rounds[idx].winner  = winner;
-    if (scores  !== undefined) data.rounds[idx].scores  = scores;
-    if (totals  !== undefined) data.rounds[idx].totals  = totals;
+    const { course, date, layout, winner, scores, totals, handicaps } = req.body;
+    if (course    !== undefined) data.rounds[idx].course    = course;
+    if (date      !== undefined) data.rounds[idx].date      = date;
+    if (layout    !== undefined) data.rounds[idx].layout    = layout;
+    if (winner    !== undefined) data.rounds[idx].winner    = winner;
+    if (scores    !== undefined) data.rounds[idx].scores    = scores;
+    if (totals    !== undefined) data.rounds[idx].totals    = totals;
+    if (handicaps !== undefined) data.rounds[idx].handicaps = handicaps;
     writeData(data);
     res.json({ success: true });
   } catch (err) {
