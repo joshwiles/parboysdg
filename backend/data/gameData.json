@@ -4,22 +4,22 @@
       "handicap": 0,
       "handicapLongs": 3,
       "wins": 3,
-      "played": 12
+      "played": 8
     },
     "Caleb": {
-      "handicap": -14,
-      "wins": 3,
-      "played": 12
+      "handicap": -16,
+      "wins": 1,
+      "played": 8
     },
     "Josh": {
       "handicap": -9,
-      "wins": 4,
-      "played": 12
+      "wins": 3,
+      "played": 9
     },
     "Stack": {
       "handicap": -12,
       "wins": 2,
-      "played": 9
+      "played": 2
     }
   },
   "rounds": [
@@ -27,143 +27,244 @@
       "id": "ovd3o7yn",
       "date": "2026-07-26",
       "course": "Veterans Memorial DGC",
-      "layout": "Shorts",
+      "layout": "Short Tees To A Pin",
       "winner": "Josh",
       "scores": {
-        "Brandon": -3,
         "Josh": 3,
+        "Brandon": -3,
         "Caleb": 8
       },
       "totals": {
-        "Brandon": 53,
         "Josh": 59,
+        "Brandon": 53,
         "Caleb": 64
       },
       "netScores": {
-        "Brandon": -3,
         "Josh": -8,
-        "Caleb": -6
+        "Brandon": -3,
+        "Caleb": -8
       },
       "handicaps": {
-        "Brandon": 0,
         "Josh": -11,
-        "Caleb": -14
+        "Brandon": 0,
+        "Caleb": -16
       }
     },
     {
       "id": "r2",
       "date": "2026-07-12",
-      "course": "Lobdell",
-      "layout": "Shorts",
+      "course": "Lobdell Reserve",
+      "layout": "Long Tees",
       "winner": "Josh",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": 10,
+        "Brandon": 9,
+        "Caleb": 31
+      },
+      "totals": {
+        "Josh": 73,
+        "Brandon": 72,
+        "Caleb": 94
+      },
+      "netScores": {
+        "Josh": -2,
+        "Brandon": 9,
+        "Caleb": 15
+      },
+      "handicaps": {
+        "Josh": -12,
+        "Brandon": 0,
+        "Caleb": -16
+      }
     },
     {
       "id": "r3",
       "date": "2026-06-27",
-      "course": "Alum",
-      "layout": "Shorts",
+      "course": "Alum Creek State Park DGC",
+      "layout": "Blue Tees",
       "winner": "Brandon",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": 17,
+        "Brandon": 2,
+        "Caleb": 22
+      },
+      "totals": {
+        "Josh": 75,
+        "Brandon": 60,
+        "Caleb": 80
+      },
+      "netScores": {
+        "Josh": 6,
+        "Brandon": 2,
+        "Caleb": 7
+      },
+      "handicaps": {
+        "Josh": -11,
+        "Brandon": 0,
+        "Caleb": -15
+      }
     },
     {
       "id": "r4",
       "date": "2026-06-23",
-      "course": "Brent",
-      "layout": "Shorts",
+      "course": "Brent Hambrick Memorial DGC",
+      "layout": "Short Tees (27 Holes)",
       "winner": "Brandon",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
-    },
-    {
-      "id": "bw2605",
-      "date": "2026-05-19",
-      "course": "Blendon Woods DGC",
-      "layout": "Main",
-      "winner": "Caleb",
       "scores": {
-        "Brandon": -16,
-        "Caleb": -1,
-        "Josh": -4
+        "Josh": 19,
+        "Brandon": -4,
+        "Caleb": 29
       },
       "totals": {
-        "Brandon": 47,
-        "Caleb": 62,
-        "Josh": 59
+        "Josh": 100,
+        "Brandon": 77,
+        "Caleb": 110
       },
       "netScores": {
-        "Brandon": -16,
-        "Caleb": -17,
-        "Josh": -13
+        "Josh": 9,
+        "Brandon": -4,
+        "Caleb": 15
       },
       "handicaps": {
+        "Josh": -10,
         "Brandon": 0,
-        "Caleb": -16,
-        "Josh": -9
+        "Caleb": -14
       }
     },
     {
       "id": "r5",
-      "date": "",
-      "course": "Unknown",
-      "layout": "Shorts",
+      "date": "2026-06-01",
+      "course": "Griggs Reservoir Park DGC",
+      "layout": "Main",
       "winner": "Stack",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": 6,
+        "Caleb": 11,
+        "Stack": 6
+      },
+      "totals": {
+        "Josh": 61,
+        "Caleb": 66,
+        "Stack": 61
+      },
+      "netScores": {
+        "Josh": -4,
+        "Caleb": -3,
+        "Stack": -5
+      },
+      "handicaps": {
+        "Josh": -10,
+        "Caleb": -14,
+        "Stack": -11
+      }
     },
     {
       "id": "r6",
-      "date": "",
-      "course": "Unknown",
-      "layout": "Shorts",
+      "date": "2026-05-30",
+      "course": "Lobdell Reserve",
+      "layout": "Long Tees",
       "winner": "Stack",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": 20,
+        "Brandon": 5,
+        "Stack": 20
+      },
+      "totals": {
+        "Josh": 81,
+        "Brandon": 66,
+        "Stack": 81
+      },
+      "netScores": {
+        "Josh": 10,
+        "Brandon": 5,
+        "Stack": 8
+      },
+      "handicaps": {
+        "Josh": -10,
+        "Brandon": 0,
+        "Stack": -12
+      }
     },
     {
       "id": "r7",
-      "date": "",
-      "course": "Unknown",
-      "layout": "Shorts",
+      "date": "2026-05-27",
+      "course": "Simsbury DGC",
+      "layout": "Shorts to Orange Baskets",
       "winner": "Caleb",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": 7,
+        "Brandon": -3,
+        "Caleb": 10
+      },
+      "totals": {
+        "Josh": 66,
+        "Brandon": 56,
+        "Caleb": 69
+      },
+      "netScores": {
+        "Josh": -3,
+        "Brandon": -3,
+        "Caleb": -5
+      },
+      "handicaps": {
+        "Josh": -10,
+        "Brandon": 0,
+        "Caleb": -15
+      }
     },
     {
       "id": "r8",
-      "date": "",
-      "course": "Unknown",
-      "layout": "Shorts",
+      "date": "2026-05-23",
+      "course": "Lobdell Reserve",
+      "layout": "Short Tees",
       "winner": "Josh",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": 9,
+        "Brandon": 3,
+        "Caleb": 17
+      },
+      "totals": {
+        "Josh": 69,
+        "Brandon": 63,
+        "Caleb": 77
+      },
+      "netScores": {
+        "Josh": -2,
+        "Brandon": 3,
+        "Caleb": 2
+      },
+      "handicaps": {
+        "Josh": -11,
+        "Brandon": 0,
+        "Caleb": -15
+      }
     },
     {
       "id": "r9",
-      "date": "",
-      "course": "Unknown",
-      "layout": "Shorts",
+      "date": "2026-05-19",
+      "course": "Blendon Woods DGC",
+      "layout": "Main",
       "winner": "Brandon",
-      "scores": {},
-      "totals": {},
-      "netScores": {},
-      "handicaps": {}
+      "scores": {
+        "Josh": -4,
+        "Brandon": -16,
+        "Caleb": -1
+      },
+      "totals": {
+        "Josh": 59,
+        "Brandon": 47,
+        "Caleb": 62
+      },
+      "netScores": {
+        "Josh": -14,
+        "Brandon": -16,
+        "Caleb": -15
+      },
+      "handicaps": {
+        "Josh": -10,
+        "Brandon": 0,
+        "Caleb": -14
+      }
     }
   ]
 }
