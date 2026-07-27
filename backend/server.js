@@ -8,8 +8,20 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(helmet());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://parboysdg.com',
+  'https://www.parboysdg.com',
+  'https://parboysdg.vercel.app',
+];
+if (process.env.ALLOWED_ORIGIN) allowedOrigins.push(process.env.ALLOWED_ORIGIN);
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173'
+  origin: (origin, cb) => {
+    // allow requests with no origin (curl, Postman, etc.) and known origins
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
 }));
 app.use(morgan('combined'));
 app.use(express.json());
