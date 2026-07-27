@@ -252,41 +252,61 @@
       <!-- ── PLAYERS ── -->
       <div v-if="activeTab === 'players'">
         <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;">
-          <div style="padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
-            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.6px;">LONGS HANDICAP</span>
+
+          <!-- Column headers -->
+          <div style="display: grid; grid-template-columns: 1.4fr 0.6fr 0.6fr 0.7fr 64px; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1); align-items: center;">
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">PLAYER</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">WINS</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">HCP</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">LONGS</span>
+            <span></span>
           </div>
-          <div
-            v-for="(pdata, name) in data.players"
-            :key="name"
-            style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid rgba(201,205,196,0.08);"
-          >
-            <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">{{ name }}</span>
-            <input
-              type="number"
-              step="1"
-              :placeholder="'0'"
-              :defaultValue="pdata.handicapLongs ?? 0"
-              :value="pdata.handicapLongs ?? 0"
-              @change="e => saveLongs(name, e.target.value)"
-              @keydown.enter="e => e.target.blur()"
-              style="
-                width: 72px;
-                padding: 6px 10px;
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 13px;
-                font-weight: 700;
-                background: #152018;
-                border: 1px solid rgba(201,205,196,0.2);
-                border-radius: 4px;
-                color: #EFE9DA;
-                text-align: center;
-              "
-            />
-          </div>
-          <div style="padding: 10px 16px; border-top: 1px solid rgba(201,205,196,0.08);">
-            <p style="margin: 0; font-family: Inter, sans-serif; font-size: 11px; color: rgba(239,233,218,0.5); line-height: 1.5;">
-              Longs handicap is used for net score calculation on long course layouts. Set to 0 to disable.
-            </p>
+
+          <div v-for="(pdata, name) in data.players" :key="name">
+
+            <!-- Static row -->
+            <div
+              v-if="editingPlayer !== name"
+              style="display: grid; grid-template-columns: 1.4fr 0.6fr 0.6fr 0.7fr 64px; padding: 13px 16px; border-top: 1px solid rgba(201,205,196,0.08); align-items: center;"
+            >
+              <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">{{ name }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">{{ pdata.wins ?? 0 }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;"
+                :style="{ color: pdata.handicap <= 0 ? '#3E6B49' : '#D9A404' }">
+                {{ formatHcp(pdata.handicap) }}
+              </span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.5);">
+                {{ pdata.handicapLongs ? '+' + pdata.handicapLongs : '—' }}
+              </span>
+              <button @click="startEdit(name, pdata)" :style="ghostEditBtn">Edit</button>
+            </div>
+
+            <!-- Edit row -->
+            <div
+              v-else
+              style="padding: 14px 16px; border-top: 1px solid rgba(201,205,196,0.08); background: rgba(21,32,24,0.5);"
+            >
+              <div style="font-family: Inter, sans-serif; font-weight: 600; font-size: 13px; color: #EFE9DA; margin-bottom: 12px;">{{ name }}</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINS</div>
+                  <input type="number" v-model="editForm.wins" min="0" :style="editInput" />
+                </div>
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">HCP</div>
+                  <input type="number" v-model="editForm.handicap" max="0" :style="editInput" />
+                </div>
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LONGS</div>
+                  <input type="number" v-model="editForm.handicapLongs" :style="editInput" />
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button @click="savePlayer(name)" :style="saveBtn">Save</button>
+                <button @click="editingPlayer = null" :style="cancelBtn">Cancel</button>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -479,15 +499,82 @@ function formatHcp(val) {
   return val > 0 ? `+${val}` : `${val}`;
 }
 
-async function saveLongs(name, value) {
+const editingPlayer = ref(null);
+const editForm = ref({ wins: 0, handicap: 0, handicapLongs: 0 });
+
+function startEdit(name, pdata) {
+  editingPlayer.value = name;
+  editForm.value = {
+    wins: pdata.wins ?? 0,
+    handicap: pdata.handicap ?? 0,
+    handicapLongs: pdata.handicapLongs ?? 0,
+  };
+}
+
+async function savePlayer(name) {
   try {
-    await axios.patch(`${API}/api/players/${encodeURIComponent(name)}/longs`, { handicapLongs: value });
+    await axios.patch(`${API}/api/players/${encodeURIComponent(name)}`, {
+      wins: editForm.value.wins,
+      handicap: editForm.value.handicap,
+      handicapLongs: editForm.value.handicapLongs,
+    });
+    editingPlayer.value = null;
     await fetchData();
   } catch (err) {
     uploadError.value = err.response?.data?.error || 'Failed to save';
     setTimeout(() => { uploadError.value = ''; }, 4000);
   }
 }
+
+const editInput = {
+  width: '100%',
+  padding: '7px 10px',
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: '13px',
+  fontWeight: '700',
+  background: '#152018',
+  border: '1px solid rgba(201,205,196,0.25)',
+  borderRadius: '4px',
+  color: '#EFE9DA',
+  boxSizing: 'border-box',
+};
+
+const ghostEditBtn = {
+  padding: '4px 10px',
+  fontFamily: 'Oswald, sans-serif',
+  fontSize: '11px',
+  letterSpacing: '0.4px',
+  background: 'transparent',
+  border: '1px solid rgba(201,205,196,0.25)',
+  borderRadius: '4px',
+  color: 'rgba(239,233,218,0.6)',
+  cursor: 'pointer',
+};
+
+const saveBtn = {
+  padding: '7px 16px',
+  fontFamily: 'Oswald, sans-serif',
+  fontSize: '12px',
+  letterSpacing: '0.4px',
+  background: '#D9A404',
+  border: 'none',
+  borderRadius: '4px',
+  color: '#152018',
+  cursor: 'pointer',
+  fontWeight: '600',
+};
+
+const cancelBtn = {
+  padding: '7px 14px',
+  fontFamily: 'Oswald, sans-serif',
+  fontSize: '12px',
+  letterSpacing: '0.4px',
+  background: 'transparent',
+  border: '1px solid rgba(201,205,196,0.2)',
+  borderRadius: '4px',
+  color: 'rgba(239,233,218,0.6)',
+  cursor: 'pointer',
+};
 
 function sortedScores(scores) {
   return Object.entries(scores).sort((a, b) => a[1] - b[1]);

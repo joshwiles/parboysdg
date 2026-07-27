@@ -71,14 +71,15 @@ router.post('/upload', upload.single('csv'), (req, res) => {
   }
 });
 
-router.patch('/players/:name/longs', (req, res) => {
+router.patch('/players/:name', (req, res) => {
   try {
     const { name } = req.params;
-    const val = req.body.handicapLongs;
     const data = readData();
     if (!data.players[name]) return res.status(404).json({ error: 'Player not found' });
-    const num = val === '' || val === null || val === undefined ? 0 : Number(val);
-    data.players[name].handicapLongs = num;
+    const { handicap, handicapLongs, wins } = req.body;
+    if (handicap !== undefined) data.players[name].handicap = Math.min(0, Number(handicap));
+    if (handicapLongs !== undefined) data.players[name].handicapLongs = Number(handicapLongs) || 0;
+    if (wins !== undefined) data.players[name].wins = Math.max(0, Number(wins));
     writeData(data);
     res.json({ success: true, players: data.players });
   } catch (err) {
