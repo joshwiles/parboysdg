@@ -353,16 +353,17 @@
                 </div>
                 <div v-else>
                   <!-- Column headers -->
-                  <div style="display: grid; grid-template-columns: 1.2fr 58px 52px 58px; gap: 0; margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid rgba(201,205,196,0.07);">
+                  <div style="display: grid; grid-template-columns: 1.2fr 52px 48px 52px 48px; gap: 0; margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid rgba(201,205,196,0.07);">
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px;"></span>
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">GROSS</span>
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">HCP</span>
                     <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">NET</span>
+                    <span style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; text-align: center;">TOT</span>
                   </div>
                   <div
                     v-for="[name, score] in sortedScores(round.scores)"
                     :key="name"
-                    style="display: grid; grid-template-columns: 1.2fr 58px 52px 58px; gap: 0; align-items: center; padding: 3px 0;"
+                    style="display: grid; grid-template-columns: 1.2fr 52px 48px 52px 48px; gap: 0; align-items: center; padding: 3px 0;"
                   >
                     <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '600' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
                       {{ name }}
@@ -380,15 +381,9 @@
                             ? formatScore(score + round.handicaps[name])
                             : '—' }}
                     </span>
-                  </div>
-                  <!-- Total strokes -->
-                  <div v-if="round.totals && Object.values(round.totals).some(v => v != null)" style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(201,205,196,0.07);">
-                    <div style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; margin-bottom: 4px;">TOTAL STROKES</div>
-                    <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-                      <span v-for="[name] in sortedScores(round.scores)" :key="name" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.35);">
-                        {{ name }}: {{ round.totals?.[name] ?? '—' }}
-                      </span>
-                    </div>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.35);">
+                      {{ round.totals?.[name] ?? '—' }}
+                    </span>
                   </div>
                 </div>
               </div>
