@@ -426,80 +426,118 @@
 
       <!-- ── UPLOAD ── -->
       <div v-if="activeTab === 'upload'">
-        <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 20px;">
-          <p style="margin: 0 0 4px; font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.6px; font-weight: 600;">
-            UPLOAD ROUND
-          </p>
-          <p style="margin: 0 0 18px; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.7); line-height: 1.5;">
-            Export your scorecard from UDisc (CSV) and upload it here. Handicaps and wins update automatically.
-          </p>
 
-          <button
-            @click="triggerUpload"
-            :disabled="uploading"
-            :style="{
-              width: '100%',
-              padding: '10px 14px',
-              fontFamily: 'Oswald, sans-serif',
-              fontSize: '13px',
-              letterSpacing: '0.4px',
-              background: uploading ? 'rgba(217,164,4,0.6)' : '#D9A404',
-              border: 'none',
-              borderRadius: '4px',
-              color: '#152018',
-              cursor: uploading ? 'not-allowed' : 'pointer',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }"
-          >
-            <svg
-              v-if="uploading"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              style="animation: spin 0.8s linear infinite;"
-            >
+        <!-- Step 1: choose file (hidden when preview is showing) -->
+        <div v-if="!preview" style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 20px;">
+          <p style="margin: 0 0 4px; font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.6px; font-weight: 600;">UPLOAD ROUND</p>
+          <p style="margin: 0 0 18px; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.7); line-height: 1.5;">
+            Export your scorecard from UDisc (CSV). You'll get a preview to review and edit before submitting.
+          </p>
+          <button @click="triggerUpload" :disabled="uploading" :style="{
+            width: '100%', padding: '10px 14px', fontFamily: 'Oswald, sans-serif', fontSize: '13px',
+            letterSpacing: '0.4px', background: uploading ? 'rgba(217,164,4,0.6)' : '#D9A404',
+            border: 'none', borderRadius: '4px', color: '#152018', cursor: uploading ? 'not-allowed' : 'pointer',
+            fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          }">
+            <svg v-if="uploading" width="14" height="14" viewBox="0 0 24 24" fill="none" style="animation: spin 0.8s linear infinite;">
               <circle cx="12" cy="12" r="10" stroke="#152018" stroke-width="3" stroke-opacity="0.25" />
               <path d="M4 12a8 8 0 018-8" stroke="#152018" stroke-width="3" stroke-linecap="round" />
             </svg>
-            {{ uploading ? 'UPLOADING…' : 'CHOOSE CSV FILE' }}
+            {{ uploading ? 'PARSING…' : 'CHOOSE CSV FILE' }}
           </button>
+          <input ref="fileInput" type="file" accept=".csv" style="display: none;" @change="handleFileChange" />
+        </div>
 
-          <input
-            ref="fileInput"
-            type="file"
-            accept=".csv"
-            style="display: none;"
-            @change="handleFileChange"
-          />
+        <!-- Step 2: preview + edit -->
+        <div v-else style="display: flex; flex-direction: column; gap: 10px;">
 
-          <!-- Upload result -->
-          <div
-            v-if="uploadResult"
-            style="margin-top: 16px; background: #152018; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 14px;"
-          >
-            <p style="margin: 0 0 8px; font-family: Oswald, sans-serif; font-size: 13px; color: #D9A404; font-weight: 600;">
-              🏆 {{ uploadResult.winner }}
-            </p>
-            <div
-              v-if="uploadResult.netScores"
-              style="display: flex; flex-direction: column; gap: 3px;"
-            >
-              <div
-                v-for="[name, score] in Object.entries(uploadResult.netScores)"
-                :key="name"
-                style="display: flex; justify-content: space-between;"
-              >
-                <span style="font-family: Inter, sans-serif; font-size: 12px; color: rgba(239,233,218,0.7);">{{ name }}</span>
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(239,233,218,0.7);">{{ formatScore(score) }}</span>
+          <!-- Metadata -->
+          <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px;">
+            <p style="margin: 0 0 12px; font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.6px; font-weight: 600;">ROUND PREVIEW — EDIT BEFORE SUBMITTING</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+              <div>
+                <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">COURSE</div>
+                <input type="text" v-model="previewForm.course" :style="editInput" />
+              </div>
+              <div>
+                <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
+                <input type="date" v-model="previewForm.date" :style="editInput" />
+              </div>
+              <div>
+                <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
+                <select v-model="previewForm.layout" :style="editInput">
+                  <option>Shorts</option>
+                  <option>Longs</option>
+                </select>
+              </div>
+              <div>
+                <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINNER</div>
+                <select v-model="previewForm.winner" :style="editInput">
+                  <option v-for="name in Object.keys(previewForm.scores)" :key="name">{{ name }}</option>
+                </select>
               </div>
             </div>
           </div>
+
+          <!-- Scores table -->
+          <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;">
+            <!-- Header -->
+            <div style="display: grid; grid-template-columns: 1.2fr 80px 70px 80px; gap: 0; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
+              <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYER</span>
+              <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">GROSS</span>
+              <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">HCP</span>
+              <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">NET</span>
+            </div>
+            <!-- Player rows -->
+            <div
+              v-for="name in Object.keys(previewForm.scores)"
+              :key="name"
+              :style="{
+                display: 'grid',
+                gridTemplateColumns: '1.2fr 80px 70px 80px',
+                gap: '0',
+                padding: '10px 16px',
+                alignItems: 'center',
+                borderTop: '1px solid rgba(201,205,196,0.08)',
+                background: previewForm.winner === name ? 'rgba(217,164,4,0.1)' : 'transparent',
+              }"
+            >
+              <span :style="{ fontFamily: 'Inter, sans-serif', fontWeight: '600', fontSize: '14px', color: previewForm.winner === name ? '#D9A404' : '#EFE9DA' }">
+                {{ previewForm.winner === name ? '🏆 ' : '' }}{{ name }}
+              </span>
+              <input
+                type="number"
+                v-model="previewForm.scores[name]"
+                :style="{ ...editInput, textAlign: 'center', marginBottom: 0, width: '100%' }"
+                @input="autoSetWinner"
+              />
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.5); text-align: center;">
+                {{ formatHcp(getHcp(name, previewForm.layout)) }}
+              </span>
+              <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontWeight: '700', fontSize: '14px', textAlign: 'center', color: previewForm.winner === name ? '#D9A404' : '#3E6B49' }">
+                {{ previewForm.scores[name] !== '' ? formatScore(Number(previewForm.scores[name]) + getHcp(name, previewForm.layout)) : '—' }}
+              </span>
+            </div>
+            <!-- Totals row -->
+            <div v-if="Object.values(previewForm.totals).some(v => v !== '' && v != null)" style="border-top: 1px solid rgba(201,205,196,0.08); padding: 8px 16px;">
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; margin-bottom: 6px;">TOTAL STROKES</div>
+              <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <span v-for="name in Object.keys(previewForm.totals)" :key="name" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(239,233,218,0.5);">
+                  {{ name }}: {{ previewForm.totals[name] ?? '—' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div style="display: flex; gap: 8px;">
+            <button @click="confirmRound" :disabled="submitting" :style="{ ...saveBtn, flex: 1, opacity: submitting ? 0.6 : 1 }">
+              {{ submitting ? 'Submitting…' : 'Submit Round' }}
+            </button>
+            <button @click="cancelPreview" :style="cancelBtn">Cancel</button>
+          </div>
         </div>
+
       </div>
 
     </div>
@@ -517,11 +555,13 @@ const API = import.meta.env.VITE_API_URL || '';
 const data = ref({ players: {}, rounds: [] });
 const loading = ref(true);
 const uploading = ref(false);
+const submitting = ref(false);
 const toast = ref('');
 const uploadError = ref('');
-const uploadResult = ref(null);
 const fileInput = ref(null);
 const activeTab = ref('board');
+const preview = ref(null);
+const previewForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {} });
 
 const tabs = [
   ['board', 'Leaderboard'],
@@ -555,24 +595,87 @@ async function handleFileChange(e) {
   uploading.value = true;
   uploadError.value = '';
   toast.value = '';
-  uploadResult.value = null;
   try {
     const form = new FormData();
     form.append('csv', file);
-    const res = await axios.post(`${API}/api/upload`, form, {
+    const res = await axios.post(`${API}/api/preview`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    await fetchData();
-    uploadResult.value = res.data;
-    toast.value = `Round uploaded! ${res.data.winner} wins!`;
-    setTimeout(() => { toast.value = ''; }, 5000);
+    preview.value = res.data;
+    previewForm.value = {
+      course: res.data.course,
+      date: res.data.date,
+      layout: res.data.layout,
+      winner: res.data.winner,
+      scores: { ...res.data.scores },
+      totals: { ...res.data.totals },
+    };
   } catch (err) {
-    uploadError.value = err.response?.data?.error || 'Upload failed';
+    uploadError.value = err.response?.data?.error || 'Failed to parse CSV';
     setTimeout(() => { uploadError.value = ''; }, 5000);
   } finally {
     uploading.value = false;
     fileInput.value.value = '';
   }
+}
+
+function getHcp(name, layout) {
+  const p = data.value.players[name];
+  if (!p) return 0;
+  if (name === 'Brandon' && /long/i.test(layout)) return p.handicapLongs || 0;
+  return p.handicap || 0;
+}
+
+function autoSetWinner() {
+  let best = Infinity;
+  let winner = previewForm.value.winner;
+  for (const [name, gross] of Object.entries(previewForm.value.scores)) {
+    if (gross === '' || gross === null || gross === undefined) continue;
+    const net = Number(gross) + getHcp(name, previewForm.value.layout);
+    if (net < best) { best = net; winner = name; }
+  }
+  previewForm.value.winner = winner;
+}
+
+async function confirmRound() {
+  submitting.value = true;
+  try {
+    const cleanScores = {};
+    const cleanTotals = {};
+    const cleanNets = {};
+    for (const [name, val] of Object.entries(previewForm.value.scores)) {
+      if (val !== '' && val !== null && val !== undefined) {
+        cleanScores[name] = Number(val);
+        cleanNets[name] = Number(val) + getHcp(name, previewForm.value.layout);
+      }
+    }
+    for (const [name, val] of Object.entries(previewForm.value.totals)) {
+      if (val !== '' && val !== null && val !== undefined) cleanTotals[name] = Number(val);
+    }
+    await axios.post(`${API}/api/confirm-round`, {
+      course: previewForm.value.course,
+      date: previewForm.value.date,
+      layout: previewForm.value.layout,
+      winner: previewForm.value.winner,
+      scores: cleanScores,
+      totals: cleanTotals,
+      netScores: cleanNets,
+    });
+    await fetchData();
+    toast.value = `Round submitted! ${previewForm.value.winner} wins!`;
+    setTimeout(() => { toast.value = ''; }, 5000);
+    preview.value = null;
+  } catch (err) {
+    uploadError.value = err.response?.data?.error || 'Failed to submit round';
+    setTimeout(() => { uploadError.value = ''; }, 5000);
+  } finally {
+    submitting.value = false;
+  }
+}
+
+function cancelPreview() {
+  preview.value = null;
+  previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {} };
 }
 
 const playerStats = computed(() => {

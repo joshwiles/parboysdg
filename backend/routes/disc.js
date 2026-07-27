@@ -76,6 +76,51 @@ router.post('/upload', upload.single('csv'), (req, res) => {
   }
 });
 
+router.post('/preview', upload.single('csv'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No CSV file uploaded' });
+    const data = readData();
+    const knownPlayers = Object.keys(data.players);
+    const parsed = parseCSV(req.file.buffer, knownPlayers);
+    if (!Object.keys(parsed.scores).length) {
+      return res.status(400).json({ error: 'No known players found in CSV. Check that names match your roster.' });
+    }
+    const longs = isLongs(parsed.layout);
+    const { winner, netScores } = determineWinner(parsed.scores, data.players, longs);
+    res.json({
+      course: parsed.course,
+      layout: parsed.layout,
+      date: parsed.date,
+      scores: parsed.scores,
+      totals: parsed.totals,
+      netScores,
+      winner,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/confirm-round', (req, res) => {
+  try {
+    const { course, date, layout, winner, scores, totals, netScores } = req.body;
+    const data = readData();
+    const matched = Object.keys(scores || {});
+    if (!matched.length) return res.status(400).json({ error: 'No scores provided' });
+    if (!data.players[winner]) return res.status(400).json({ error: 'Invalid winner' });
+    for (const name of matched) {
+      if (data.players[name]) data.players[name].played = (data.players[name].played || 0) + 1;
+    }
+    data.players[winner].wins = (data.players[winner].wins || 0) + 1;
+    data.players = updateHandicaps(winner, data.players);
+    data.rounds.unshift({ id: uid(), date, course, layout, winner, scores, totals: totals || {}, netScores: netScores || {} });
+    writeData(data);
+    res.json({ success: true, winner, players: data.players });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/rounds', (req, res) => {
   try {
     const { course, date, layout, winner, scores, totals } = req.body;
