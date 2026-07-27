@@ -179,7 +179,53 @@
           <p style="margin: 0; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.5);">Upload a UDisc CSV to see rounds here.</p>
         </div>
 
-        <div v-else style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- New round button -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+          <button @click="startNewRound" :style="{ ...saveBtn, width: 'auto', padding: '7px 16px' }">+ New Round</button>
+        </div>
+
+        <!-- New round form -->
+        <div v-if="editingRound === '__new__'" style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px; margin-bottom: 8px;">
+          <div style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 12px;">NEW ROUND</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">COURSE</div>
+              <input type="text" v-model="roundEditForm.course" :style="editInput" />
+            </div>
+            <div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
+              <input type="date" v-model="roundEditForm.date" :style="editInput" />
+            </div>
+            <div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
+              <select v-model="roundEditForm.layout" :style="editInput">
+                <option>Shorts</option>
+                <option>Longs</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINNER</div>
+              <select v-model="roundEditForm.winner" :style="editInput">
+                <option value="">— select —</option>
+                <option v-for="name in Object.keys(data.players)" :key="name">{{ name }}</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 8px;">SCORES (+/- to par · total strokes)</div>
+          <div style="display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px;">
+            <div v-for="name in Object.keys(data.players)" :key="name" style="display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; align-items: center;">
+              <span style="font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.8);">{{ name }}</span>
+              <input type="number" placeholder="+/-" v-model="roundEditForm.scores[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
+              <input type="number" placeholder="total" v-model="roundEditForm.totals[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button @click="saveRound('__new__')" :style="saveBtn">Create Round</button>
+            <button @click="editingRound = null" :style="cancelBtn">Cancel</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
           <div
             v-for="round in data.rounds"
             :key="round.id"
@@ -224,9 +270,10 @@
                 </div>
               </div>
 
-              <div style="display: flex; gap: 8px;">
+              <div style="display: flex; gap: 8px; align-items: center;">
                 <button @click="saveRound(round.id)" :style="saveBtn">Save</button>
                 <button @click="editingRound = null" :style="cancelBtn">Cancel</button>
+                <button @click="deleteRound(round.id)" :style="{ ...cancelBtn, marginLeft: 'auto', color: '#B0473E', borderColor: 'rgba(176,71,62,0.3)' }">Delete</button>
               </div>
             </div>
 
@@ -595,6 +642,17 @@ function startEditRound(round) {
   editingRound.value = round.id;
 }
 
+function startNewRound() {
+  const scores = {};
+  const totals = {};
+  for (const name of Object.keys(data.value.players)) {
+    scores[name] = '';
+    totals[name] = '';
+  }
+  roundEditForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores, totals };
+  editingRound.value = '__new__';
+}
+
 async function saveRound(id) {
   try {
     const cleanScores = {};
@@ -605,18 +663,34 @@ async function saveRound(id) {
     for (const [name, val] of Object.entries(roundEditForm.value.totals)) {
       if (val !== '' && val !== null && val !== undefined) cleanTotals[name] = Number(val);
     }
-    await axios.patch(`${API}/api/rounds/${id}`, {
+    const payload = {
       course: roundEditForm.value.course,
       date: roundEditForm.value.date,
       layout: roundEditForm.value.layout,
       winner: roundEditForm.value.winner,
       scores: cleanScores,
       totals: cleanTotals,
-    });
+    };
+    if (id === '__new__') {
+      await axios.post(`${API}/api/rounds`, payload);
+    } else {
+      await axios.patch(`${API}/api/rounds/${id}`, payload);
+    }
     editingRound.value = null;
     await fetchData();
   } catch (err) {
     uploadError.value = err.response?.data?.error || 'Failed to save round';
+    setTimeout(() => { uploadError.value = ''; }, 4000);
+  }
+}
+
+async function deleteRound(id) {
+  try {
+    await axios.delete(`${API}/api/rounds/${id}`);
+    editingRound.value = null;
+    await fetchData();
+  } catch (err) {
+    uploadError.value = err.response?.data?.error || 'Failed to delete round';
     setTimeout(() => { uploadError.value = ''; }, 4000);
   }
 }

@@ -77,6 +77,42 @@ router.post('/upload', upload.single('csv'), (req, res) => {
   }
 });
 
+router.post('/rounds', (req, res) => {
+  try {
+    const { course, date, layout, winner, scores, totals } = req.body;
+    const data = readData();
+    const newRound = {
+      id: uid(),
+      date: date || '',
+      course: course || 'Unknown',
+      layout: layout || 'Shorts',
+      winner: winner || '',
+      scores: scores || {},
+      totals: totals || {},
+      netScores: {}
+    };
+    data.rounds.unshift(newRound);
+    writeData(data);
+    res.json({ success: true, round: newRound });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/rounds/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = readData();
+    const idx = data.rounds.findIndex(r => r.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Round not found' });
+    data.rounds.splice(idx, 1);
+    writeData(data);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.patch('/rounds/:id', (req, res) => {
   try {
     const { id } = req.params;
