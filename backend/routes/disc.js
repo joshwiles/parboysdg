@@ -31,14 +31,13 @@ router.post('/upload', upload.single('csv'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No CSV file uploaded' });
 
-    const parsed = parseCSV(req.file.buffer);
     const data = readData();
-
     const knownPlayers = Object.keys(data.players);
-    const csvPlayers = Object.keys(parsed.scores);
-    const matched = csvPlayers.filter(n => knownPlayers.includes(n));
+    const parsed = parseCSV(req.file.buffer, knownPlayers);
+
+    const matched = Object.keys(parsed.scores);
     if (!matched.length) {
-      return res.status(400).json({ error: `No known players found in CSV. Found: ${csvPlayers.join(', ')}` });
+      return res.status(400).json({ error: `No known players found in CSV. Check that player names match (or start with) the names in your roster.` });
     }
 
     const filteredScores = {};
