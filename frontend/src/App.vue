@@ -388,9 +388,13 @@
                     <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.55);">
                       {{ formatScore(score) }}
                     </span>
-                    <!-- HCP -->
+                    <!-- HCP (stored, or derived from net - gross, or —) -->
                     <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.35);">
-                      {{ round.handicaps?.[name] !== undefined ? formatHcp(round.handicaps[name]) : '—' }}
+                      {{ round.handicaps?.[name] !== undefined
+                          ? formatHcp(round.handicaps[name])
+                          : round.netScores?.[name] !== undefined
+                            ? formatHcp(round.netScores[name] - score)
+                            : '—' }}
                     </span>
                     <!-- TOT -->
                     <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; color: rgba(239,233,218,0.35);">
