@@ -143,6 +143,8 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
+const API = import.meta.env.VITE_API_URL || '';
+
 const data = ref({ players: {}, rounds: [] });
 const loading = ref(true);
 const uploading = ref(false);
@@ -151,7 +153,7 @@ const uploadError = ref('');
 const fileInput = ref(null);
 
 async function fetchData() {
-  const res = await axios.get('/api/data');
+  const res = await axios.get(`${API}/api/data`);
   data.value = res.data;
 }
 
@@ -178,7 +180,7 @@ async function handleFileChange(e) {
   try {
     const form = new FormData();
     form.append('csv', file);
-    const res = await axios.post('/api/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const res = await axios.post(`${API}/api/upload`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
     await fetchData();
     toast.value = `Round uploaded! ${res.data.winner} wins!`;
     setTimeout(() => { toast.value = ''; }, 5000);
