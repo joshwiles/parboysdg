@@ -152,7 +152,7 @@
                 {{ formatHcp(player.handicap) }}
               </span>
               <div
-                v-if="player.handicapLongs !== undefined && player.handicapLongs !== null"
+                v-if="player.handicapLongs"
                 style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(239,233,218,0.5); margin-top: 2px;"
               >
                 longs +{{ player.handicapLongs }}
@@ -245,6 +245,48 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PLAYERS ── -->
+      <div v-if="activeTab === 'players'">
+        <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;">
+          <div style="padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.6px;">LONGS HANDICAP</span>
+          </div>
+          <div
+            v-for="(pdata, name) in data.players"
+            :key="name"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid rgba(201,205,196,0.08);"
+          >
+            <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">{{ name }}</span>
+            <input
+              type="number"
+              step="1"
+              :placeholder="'0'"
+              :defaultValue="pdata.handicapLongs ?? 0"
+              :value="pdata.handicapLongs ?? 0"
+              @change="e => saveLongs(name, e.target.value)"
+              @keydown.enter="e => e.target.blur()"
+              style="
+                width: 72px;
+                padding: 6px 10px;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 13px;
+                font-weight: 700;
+                background: #152018;
+                border: 1px solid rgba(201,205,196,0.2);
+                border-radius: 4px;
+                color: #EFE9DA;
+                text-align: center;
+              "
+            />
+          </div>
+          <div style="padding: 10px 16px; border-top: 1px solid rgba(201,205,196,0.08);">
+            <p style="margin: 0; font-family: Inter, sans-serif; font-size: 11px; color: rgba(239,233,218,0.5); line-height: 1.5;">
+              Longs handicap is used for net score calculation on long course layouts. Set to 0 to disable.
+            </p>
           </div>
         </div>
       </div>
@@ -352,6 +394,7 @@ const tabs = [
   ['board', 'Leaderboard'],
   ['rounds', 'Rounds'],
   ['upload', 'Upload CSV'],
+  ['players', 'Players'],
 ];
 
 async function fetchData() {
@@ -434,6 +477,16 @@ function formatHcp(val) {
   if (val === null || val === undefined) return '—';
   if (val === 0) return '0';
   return val > 0 ? `+${val}` : `${val}`;
+}
+
+async function saveLongs(name, value) {
+  try {
+    await axios.patch(`${API}/api/players/${encodeURIComponent(name)}/longs`, { handicapLongs: value });
+    await fetchData();
+  } catch (err) {
+    uploadError.value = err.response?.data?.error || 'Failed to save';
+    setTimeout(() => { uploadError.value = ''; }, 4000);
+  }
 }
 
 function sortedScores(scores) {

@@ -71,4 +71,19 @@ router.post('/upload', upload.single('csv'), (req, res) => {
   }
 });
 
+router.patch('/players/:name/longs', (req, res) => {
+  try {
+    const { name } = req.params;
+    const val = req.body.handicapLongs;
+    const data = readData();
+    if (!data.players[name]) return res.status(404).json({ error: 'Player not found' });
+    const num = val === '' || val === null || val === undefined ? 0 : Number(val);
+    data.players[name].handicapLongs = num;
+    writeData(data);
+    res.json({ success: true, players: data.players });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
