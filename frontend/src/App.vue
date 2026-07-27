@@ -89,14 +89,15 @@
           <!-- Column header -->
           <div style="
             display: grid;
-            grid-template-columns: 28px 1.5fr 0.7fr 0.7fr 0.8fr;
+            grid-template-columns: 28px 1.5fr 0.55fr 0.65fr 0.6fr 0.8fr;
             gap: 0;
             padding: 10px 16px;
             border-bottom: 1px solid rgba(201,205,196,0.1);
           ">
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">#</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYER</span>
-            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">W / PLAYED</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">WINS</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYED</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">WIN%</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">HCP</span>
           </div>
@@ -107,7 +108,7 @@
             :key="player.name"
             :style="{
               display: 'grid',
-              gridTemplateColumns: '28px 1.5fr 0.7fr 0.7fr 0.8fr',
+              gridTemplateColumns: '28px 1.5fr 0.55fr 0.65fr 0.6fr 0.8fr',
               gap: '0',
               padding: '12px 16px',
               alignItems: 'center',
@@ -125,9 +126,14 @@
               {{ player.name }}
             </span>
 
-            <!-- W / Played -->
+            <!-- Wins -->
             <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">
-              {{ player.wins }}/{{ player.played }}
+              {{ player.wins }}
+            </span>
+
+            <!-- Played -->
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">
+              {{ player.played }}
             </span>
 
             <!-- Win % -->
