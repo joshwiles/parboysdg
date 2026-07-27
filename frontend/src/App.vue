@@ -688,9 +688,12 @@ const playerStats = computed(() => {
   return Object.entries(data.value.players)
     .map(([name, p]) => {
       const wins = data.value.rounds.filter(r => r.winner === name).length;
-      const played = data.value.rounds.filter(r =>
-        r.winner === name || (r.scores && r.scores[name] !== undefined)
-      ).length;
+      const played = data.value.rounds.filter(r => {
+        const hasScores = r.scores && Object.keys(r.scores).length > 0;
+        return hasScores
+          ? r.winner === name || r.scores[name] !== undefined
+          : true; // unknown round — assume everyone played
+      }).length;
       const winPct = played ? Math.round((wins / played) * 100) : 0;
       return {
         name,
