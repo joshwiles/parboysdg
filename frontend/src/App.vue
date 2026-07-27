@@ -171,80 +171,140 @@
 
       <!-- ── ROUNDS ── -->
       <div v-if="activeTab === 'rounds'">
-        <!-- Empty state (no rounds at all OR none with scores) -->
         <div
           v-if="data.rounds.length === 0"
           style="border: 1px dashed rgba(201,205,196,0.3); border-radius: 6px; padding: 40px 20px; text-align: center;"
         >
-          <div style="font-size: 28px; margin-bottom: 10px;">📋</div>
           <p style="margin: 0 0 6px; font-family: Oswald, sans-serif; font-size: 15px; color: #EFE9DA; font-weight: 600;">No rounds logged</p>
           <p style="margin: 0; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.5);">Upload a UDisc CSV to see rounds here.</p>
         </div>
 
-        <div v-else style="display: flex; flex-direction: column; gap: 10px;">
+        <div v-else style="display: flex; flex-direction: column; gap: 8px;">
           <div
-            v-for="(round, i) in data.rounds"
-            :key="i"
-            style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px;"
+            v-for="round in data.rounds"
+            :key="round.id"
+            style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;"
           >
-            <!-- Top row: course + date/layout -->
-            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-              <span style="font-family: Oswald, sans-serif; font-size: 16px; color: #EFE9DA; font-weight: 600;">
-                {{ round.course }}
-              </span>
-              <div style="display: flex; gap: 8px; align-items: baseline; flex-shrink: 0;">
-                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(239,233,218,0.5);">
-                  {{ formatDate(round.date) }}
-                </span>
-                <span
-                  v-if="round.layout"
-                  style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(239,233,218,0.5);"
-                >
-                  · {{ round.layout }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Winner -->
-            <div style="margin-top: 8px;">
-              <span style="font-family: Oswald, sans-serif; font-size: 13px; color: #D9A404;">
-                🏆 {{ round.winner }}
-              </span>
-            </div>
-
-            <!-- Scores (only if round has scores) -->
-            <div
-              v-if="round.scores && Object.keys(round.scores).length > 0"
-              style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;"
-            >
-              <div
-                v-for="[name, score] in sortedScores(round.scores)"
-                :key="name"
-                style="display: flex; align-items: baseline; justify-content: space-between;"
-              >
-                <span
-                  :style="{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '13px',
-                    color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)',
-                    fontWeight: name === round.winner ? '600' : '400',
-                  }"
-                >{{ name }}</span>
-                <div style="display: flex; align-items: baseline; gap: 8px;">
-                  <span
-                    :style="{
-                      fontFamily: '\'JetBrains Mono\', monospace',
-                      fontSize: '13px',
-                      color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)',
-                    }"
-                  >{{ formatScore(score) }}</span>
-                  <span
-                    v-if="round.totals && round.totals[name] !== undefined"
-                    style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.35);"
-                  >({{ round.totals[name] }})</span>
+            <!-- ── EDIT MODE ── -->
+            <div v-if="editingRound === round.id" style="padding: 16px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">COURSE</div>
+                  <input type="text" v-model="roundEditForm.course" :style="editInput" />
+                </div>
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
+                  <input type="date" v-model="roundEditForm.date" :style="editInput" />
+                </div>
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
+                  <select v-model="roundEditForm.layout" :style="editInput">
+                    <option>Shorts</option>
+                    <option>Longs</option>
+                  </select>
+                </div>
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINNER</div>
+                  <select v-model="roundEditForm.winner" :style="editInput">
+                    <option v-for="name in Object.keys(data.players)" :key="name">{{ name }}</option>
+                  </select>
                 </div>
               </div>
+
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 8px;">SCORES (+/- to par · total strokes)</div>
+              <div style="display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px;">
+                <div
+                  v-for="name in Object.keys(data.players)"
+                  :key="name"
+                  style="display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; align-items: center;"
+                >
+                  <span style="font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.8);">{{ name }}</span>
+                  <input type="number" :placeholder="'+/-'" v-model="roundEditForm.scores[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
+                  <input type="number" :placeholder="'total'" v-model="roundEditForm.totals[name]" :style="{ ...editInput, textAlign: 'center', marginBottom: 0 }" />
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button @click="saveRound(round.id)" :style="saveBtn">Save</button>
+                <button @click="editingRound = null" :style="cancelBtn">Cancel</button>
+              </div>
             </div>
+
+            <!-- ── VIEW MODE ── -->
+            <template v-else>
+              <!-- Header row (always visible, clickable to expand) -->
+              <div
+                style="display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; user-select: none;"
+                @click="toggleRound(round.id)"
+              >
+                <!-- Chevron -->
+                <svg
+                  :style="{ transform: expandedRounds[round.id] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }"
+                  width="14" height="14" viewBox="0 0 24 24" fill="none"
+                >
+                  <path d="M9 18l6-6-6-6" stroke="rgba(201,205,196,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+
+                <!-- Course -->
+                <span style="font-family: Oswald, sans-serif; font-size: 15px; color: #EFE9DA; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  {{ round.course || 'Unknown' }}
+                </span>
+
+                <!-- Winner -->
+                <span style="font-family: Inter, sans-serif; font-size: 13px; color: #D9A404; font-weight: 600; flex-shrink: 0;">
+                  🏆 {{ round.winner || '—' }}
+                </span>
+
+                <!-- Date -->
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.45); flex-shrink: 0;">
+                  {{ round.date ? formatDate(round.date) : '—' }}
+                </span>
+
+                <!-- Layout badge -->
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 3px; flex-shrink: 0;"
+                  :style="{ background: round.layout === 'Longs' ? 'rgba(217,164,4,0.2)' : 'rgba(201,205,196,0.1)', color: round.layout === 'Longs' ? '#D9A404' : 'rgba(201,205,196,0.6)' }">
+                  {{ round.layout || 'Shorts' }}
+                </span>
+
+                <!-- Edit button -->
+                <button
+                  @click.stop="startEditRound(round)"
+                  :style="{ ...ghostEditBtn, flexShrink: 0 }"
+                >Edit</button>
+              </div>
+
+              <!-- Expanded scores -->
+              <div
+                v-if="expandedRounds[round.id]"
+                style="border-top: 1px solid rgba(201,205,196,0.08); padding: 12px 16px 14px 42px;"
+              >
+                <div
+                  v-if="!round.scores || Object.keys(round.scores).length === 0"
+                  style="font-family: Inter, sans-serif; font-size: 12px; color: rgba(239,233,218,0.35); font-style: italic;"
+                >
+                  No scores recorded — click Edit to add them.
+                </div>
+                <div v-else style="display: flex; flex-direction: column; gap: 5px;">
+                  <div
+                    v-for="[name, score] in sortedScores(round.scores)"
+                    :key="name"
+                    style="display: flex; align-items: baseline; justify-content: space-between;"
+                  >
+                    <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '600' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
+                      {{ name }}
+                    </span>
+                    <div style="display: flex; align-items: baseline; gap: 8px;">
+                      <span :style="{ fontFamily: '\'JetBrains Mono\', monospace', fontSize: '13px', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)' }">
+                        {{ formatScore(score) }}
+                      </span>
+                      <span v-if="round.totals && round.totals[name] !== undefined" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.3);">
+                        ({{ round.totals[name] }})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -508,6 +568,58 @@ function formatHcp(val) {
 
 const editingPlayer = ref(null);
 const editForm = ref({ wins: 0, handicap: 0, handicapLongs: 0 });
+
+const expandedRounds = ref({});
+const editingRound = ref(null);
+const roundEditForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {} });
+
+function toggleRound(id) {
+  expandedRounds.value = { ...expandedRounds.value, [id]: !expandedRounds.value[id] };
+}
+
+function startEditRound(round) {
+  const scores = {};
+  const totals = {};
+  for (const name of Object.keys(data.value.players)) {
+    scores[name] = round.scores?.[name] ?? '';
+    totals[name] = round.totals?.[name] ?? '';
+  }
+  roundEditForm.value = {
+    course: round.course || '',
+    date: round.date || '',
+    layout: round.layout || 'Shorts',
+    winner: round.winner || '',
+    scores,
+    totals,
+  };
+  editingRound.value = round.id;
+}
+
+async function saveRound(id) {
+  try {
+    const cleanScores = {};
+    const cleanTotals = {};
+    for (const [name, val] of Object.entries(roundEditForm.value.scores)) {
+      if (val !== '' && val !== null && val !== undefined) cleanScores[name] = Number(val);
+    }
+    for (const [name, val] of Object.entries(roundEditForm.value.totals)) {
+      if (val !== '' && val !== null && val !== undefined) cleanTotals[name] = Number(val);
+    }
+    await axios.patch(`${API}/api/rounds/${id}`, {
+      course: roundEditForm.value.course,
+      date: roundEditForm.value.date,
+      layout: roundEditForm.value.layout,
+      winner: roundEditForm.value.winner,
+      scores: cleanScores,
+      totals: cleanTotals,
+    });
+    editingRound.value = null;
+    await fetchData();
+  } catch (err) {
+    uploadError.value = err.response?.data?.error || 'Failed to save round';
+    setTimeout(() => { uploadError.value = ''; }, 4000);
+  }
+}
 
 function startEdit(name, pdata) {
   editingPlayer.value = name;

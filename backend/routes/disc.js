@@ -9,6 +9,8 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 const DATA_FILE = path.join(__dirname, '../data/gameData.json');
 
+const uid = () => Math.random().toString(36).slice(2, 10);
+
 function readData() {
   return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
 }
@@ -56,6 +58,7 @@ router.post('/upload', upload.single('csv'), (req, res) => {
     data.players = updateHandicaps(winner, data.players);
 
     const newRound = {
+      id: uid(),
       date: parsed.date,
       course: parsed.course,
       layout: parsed.layout,
@@ -69,6 +72,26 @@ router.post('/upload', upload.single('csv'), (req, res) => {
     writeData(data);
 
     res.json({ success: true, winner, netScores, players: data.players });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.patch('/rounds/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = readData();
+    const idx = data.rounds.findIndex(r => r.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Round not found' });
+    const { course, date, layout, winner, scores, totals } = req.body;
+    if (course  !== undefined) data.rounds[idx].course  = course;
+    if (date    !== undefined) data.rounds[idx].date    = date;
+    if (layout  !== undefined) data.rounds[idx].layout  = layout;
+    if (winner  !== undefined) data.rounds[idx].winner  = winner;
+    if (scores  !== undefined) data.rounds[idx].scores  = scores;
+    if (totals  !== undefined) data.rounds[idx].totals  = totals;
+    writeData(data);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
