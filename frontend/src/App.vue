@@ -1,147 +1,341 @@
 <template>
-  <div id="app" class="min-h-screen bg-gray-50">
+  <div style="min-height: 100vh; background: #152018; font-family: Inter, sans-serif;">
+
     <!-- Header -->
-    <header class="text-white px-6 py-5 shadow-lg" style="background-color: #1a4731;">
-      <div class="max-w-5xl mx-auto flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-extrabold tracking-tight">Par Boys</h1>
-          <p class="text-green-300 text-sm mt-0.5">Disc Golf Tracker</p>
+    <div style="max-width: 640px; margin: 0 auto; padding: 28px 20px 0;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h1 style="margin: 0; font-family: Oswald, sans-serif; font-weight: 700; font-size: 30px; color: #EFE9DA; letter-spacing: 1px;">PAR BOYS</h1>
+            <!-- Toast / Error badges -->
+            <span
+              v-if="toast"
+              style="display: inline-block; padding: 3px 10px; border-radius: 999px; background: #D9A404; color: #152018; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;"
+            >{{ toast }}</span>
+            <span
+              v-if="uploadError"
+              style="font-family: Inter, sans-serif; font-size: 12px; color: #B0473E;"
+            >{{ uploadError }}</span>
+          </div>
+          <p style="margin: 4px 0 0; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.6);">
+            Handicaps, wins, and round history for the crew.
+          </p>
         </div>
-        <div class="flex items-center gap-3">
-          <span v-if="toast" class="text-sm font-medium px-3 py-1 rounded-full bg-yellow-400 text-yellow-900">
-            {{ toast }}
+        <div style="text-align: right; flex-shrink: 0;">
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #D9A404; font-weight: 500;">
+            {{ data.rounds.length }} rounds logged
           </span>
-          <span v-if="uploadError" class="text-sm font-medium px-3 py-1 rounded-full bg-red-400 text-red-900">
-            {{ uploadError }}
-          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chain Divider -->
+    <div style="max-width: 640px; margin: 18px auto 0; padding: 0 20px; overflow: hidden;">
+      <ChainDivider />
+    </div>
+
+    <!-- Tabs -->
+    <div style="max-width: 640px; margin: 0 auto; padding: 0 20px;">
+      <div style="display: flex; border-bottom: 1px solid rgba(201,205,196,0.13); margin-top: 4px;">
+        <button
+          v-for="[id, label] in tabs"
+          :key="id"
+          @click="activeTab = id"
+          :style="{
+            padding: '10px 16px',
+            fontFamily: 'Oswald, sans-serif',
+            fontSize: '13px',
+            fontWeight: '600',
+            letterSpacing: '0.5px',
+            background: activeTab === id ? '#1F3327' : 'transparent',
+            color: activeTab === id ? '#EFE9DA' : 'rgba(239,233,218,0.5)',
+            border: 'none',
+            borderBottom: activeTab === id ? '2px solid #D9A404' : '2px solid transparent',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }"
+        >{{ label }}</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div
+      v-if="loading"
+      style="display: flex; justify-content: center; align-items: center; padding: 80px 20px;"
+    >
+      <span style="font-family: Inter, sans-serif; font-size: 13px; color: #EFE9DA;">Loading scorecard…</span>
+    </div>
+
+    <!-- Main Content -->
+    <div v-else style="max-width: 640px; margin: 0 auto; padding: 20px 20px 48px;">
+
+      <!-- ── LEADERBOARD ── -->
+      <div v-if="activeTab === 'board'">
+        <!-- Empty state -->
+        <div
+          v-if="playerStats.length === 0"
+          style="border: 1px dashed rgba(201,205,196,0.3); border-radius: 6px; padding: 40px 20px; text-align: center;"
+        >
+          <div style="font-size: 28px; margin-bottom: 10px;">⛳</div>
+          <p style="margin: 0 0 6px; font-family: Oswald, sans-serif; font-size: 15px; color: #EFE9DA; font-weight: 600;">No players yet</p>
+          <p style="margin: 0; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.5);">Upload a UDisc CSV to get started.</p>
+        </div>
+
+        <!-- Leaderboard card -->
+        <div
+          v-else
+          style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;"
+        >
+          <!-- Column header -->
+          <div style="
+            display: grid;
+            grid-template-columns: 28px 1.5fr 0.7fr 0.7fr 0.8fr;
+            gap: 0;
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(201,205,196,0.1);
+          ">
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">#</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYER</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">W / PLAYED</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">WIN%</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">HCP</span>
+          </div>
+
+          <!-- Player rows -->
+          <div
+            v-for="(player, idx) in playerStats"
+            :key="player.name"
+            :style="{
+              display: 'grid',
+              gridTemplateColumns: '28px 1.5fr 0.7fr 0.7fr 0.8fr',
+              gap: '0',
+              padding: '12px 16px',
+              alignItems: 'center',
+              background: player.isAnchor ? 'rgba(217,164,4,0.14)' : 'transparent',
+              borderTop: idx > 0 ? '1px solid rgba(201,205,196,0.08)' : 'none',
+            }"
+          >
+            <!-- Rank -->
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(239,233,218,0.5);">
+              {{ idx + 1 }}
+            </span>
+
+            <!-- Name -->
+            <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">
+              {{ player.name }}
+            </span>
+
+            <!-- W / Played -->
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">
+              {{ player.wins }}/{{ player.played }}
+            </span>
+
+            <!-- Win % -->
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">
+              {{ player.winPct }}%
+            </span>
+
+            <!-- Handicap -->
+            <div>
+              <span
+                :style="{
+                  fontFamily: '\'JetBrains Mono\', monospace',
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  color: player.handicap === null || player.handicap === undefined
+                    ? 'rgba(239,233,218,0.3)'
+                    : player.handicap <= 0
+                      ? '#3E6B49'
+                      : '#D9A404',
+                }"
+              >
+                {{ formatHcp(player.handicap) }}
+              </span>
+              <div
+                v-if="player.handicapLongs !== undefined && player.handicapLongs !== null"
+                style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(239,233,218,0.5); margin-top: 2px;"
+              >
+                longs +{{ player.handicapLongs }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer note -->
+          <div style="padding: 10px 16px; border-top: 1px solid rgba(201,205,196,0.08);">
+            <p style="margin: 0; font-family: Inter, sans-serif; font-size: 11px; color: rgba(239,233,218,0.7); line-height: 1.5;">
+              Handicap adjusts after each round — anchor player wins → everyone else drops 1. Non-anchor wins → winner gains 1 toward 0.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ROUNDS ── -->
+      <div v-if="activeTab === 'rounds'">
+        <!-- Empty state (no rounds at all OR none with scores) -->
+        <div
+          v-if="data.rounds.length === 0"
+          style="border: 1px dashed rgba(201,205,196,0.3); border-radius: 6px; padding: 40px 20px; text-align: center;"
+        >
+          <div style="font-size: 28px; margin-bottom: 10px;">📋</div>
+          <p style="margin: 0 0 6px; font-family: Oswald, sans-serif; font-size: 15px; color: #EFE9DA; font-weight: 600;">No rounds logged</p>
+          <p style="margin: 0; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.5);">Upload a UDisc CSV to see rounds here.</p>
+        </div>
+
+        <div v-else style="display: flex; flex-direction: column; gap: 10px;">
+          <div
+            v-for="(round, i) in data.rounds"
+            :key="i"
+            style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px;"
+          >
+            <!-- Top row: course + date/layout -->
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+              <span style="font-family: Oswald, sans-serif; font-size: 16px; color: #EFE9DA; font-weight: 600;">
+                {{ round.course }}
+              </span>
+              <div style="display: flex; gap: 8px; align-items: baseline; flex-shrink: 0;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(239,233,218,0.5);">
+                  {{ formatDate(round.date) }}
+                </span>
+                <span
+                  v-if="round.layout"
+                  style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(239,233,218,0.5);"
+                >
+                  · {{ round.layout }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Winner -->
+            <div style="margin-top: 8px;">
+              <span style="font-family: Oswald, sans-serif; font-size: 13px; color: #D9A404;">
+                🏆 {{ round.winner }}
+              </span>
+            </div>
+
+            <!-- Scores (only if round has scores) -->
+            <div
+              v-if="round.scores && Object.keys(round.scores).length > 0"
+              style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;"
+            >
+              <div
+                v-for="[name, score] in sortedScores(round.scores)"
+                :key="name"
+                style="display: flex; align-items: baseline; justify-content: space-between;"
+              >
+                <span
+                  :style="{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '13px',
+                    color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)',
+                    fontWeight: name === round.winner ? '600' : '400',
+                  }"
+                >{{ name }}</span>
+                <div style="display: flex; align-items: baseline; gap: 8px;">
+                  <span
+                    :style="{
+                      fontFamily: '\'JetBrains Mono\', monospace',
+                      fontSize: '13px',
+                      color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.75)',
+                    }"
+                  >{{ formatScore(score) }}</span>
+                  <span
+                    v-if="round.totals && round.totals[name] !== undefined"
+                    style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.35);"
+                  >({{ round.totals[name] }})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── UPLOAD ── -->
+      <div v-if="activeTab === 'upload'">
+        <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 20px;">
+          <p style="margin: 0 0 4px; font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.6px; font-weight: 600;">
+            UPLOAD ROUND
+          </p>
+          <p style="margin: 0 0 18px; font-family: Inter, sans-serif; font-size: 13px; color: rgba(239,233,218,0.7); line-height: 1.5;">
+            Export your scorecard from UDisc (CSV) and upload it here. Handicaps and wins update automatically.
+          </p>
+
           <button
             @click="triggerUpload"
             :disabled="uploading"
-            class="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all"
-            style="background-color: #2d7a4f; color: white;"
-            :class="uploading ? 'opacity-60 cursor-not-allowed' : 'hover:brightness-110'"
+            :style="{
+              width: '100%',
+              padding: '10px 14px',
+              fontFamily: 'Oswald, sans-serif',
+              fontSize: '13px',
+              letterSpacing: '0.4px',
+              background: uploading ? 'rgba(217,164,4,0.6)' : '#D9A404',
+              border: 'none',
+              borderRadius: '4px',
+              color: '#152018',
+              cursor: uploading ? 'not-allowed' : 'pointer',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }"
           >
-            <svg v-if="uploading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            <svg
+              v-if="uploading"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              style="animation: spin 0.8s linear infinite;"
+            >
+              <circle cx="12" cy="12" r="10" stroke="#152018" stroke-width="3" stroke-opacity="0.25" />
+              <path d="M4 12a8 8 0 018-8" stroke="#152018" stroke-width="3" stroke-linecap="round" />
             </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0L8 8m4-4l4 4" />
-            </svg>
-            {{ uploading ? 'Uploading...' : 'Upload CSV' }}
+            {{ uploading ? 'UPLOADING…' : 'CHOOSE CSV FILE' }}
           </button>
-          <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="handleFileChange" />
+
+          <input
+            ref="fileInput"
+            type="file"
+            accept=".csv"
+            style="display: none;"
+            @change="handleFileChange"
+          />
+
+          <!-- Upload result -->
+          <div
+            v-if="uploadResult"
+            style="margin-top: 16px; background: #152018; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 14px;"
+          >
+            <p style="margin: 0 0 8px; font-family: Oswald, sans-serif; font-size: 13px; color: #D9A404; font-weight: 600;">
+              🏆 {{ uploadResult.winner }}
+            </p>
+            <div
+              v-if="uploadResult.netScores"
+              style="display: flex; flex-direction: column; gap: 3px;"
+            >
+              <div
+                v-for="[name, score] in Object.entries(uploadResult.netScores)"
+                :key="name"
+                style="display: flex; justify-content: space-between;"
+              >
+                <span style="font-family: Inter, sans-serif; font-size: 12px; color: rgba(239,233,218,0.7);">{{ name }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(239,233,218,0.7);">{{ formatScore(score) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </header>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center py-32">
-      <svg class="animate-spin h-10 w-10 text-green-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-      </svg>
     </div>
 
-    <main v-else class="max-w-5xl mx-auto px-6 py-8 space-y-10">
-
-      <!-- Handicaps -->
-      <section>
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span class="inline-block w-1 h-5 rounded" style="background-color: #1a4731;"></span>
-          Handicaps
-        </h2>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div
-            v-for="(pdata, name) in data.players"
-            :key="name"
-            class="rounded-xl p-4 shadow-sm border-2 transition-all"
-            :class="pdata.handicap === 0 ? 'border-yellow-400 bg-yellow-50' : 'border-gray-100 bg-white'"
-          >
-            <div class="flex items-start justify-between">
-              <p class="font-bold text-gray-800 text-lg">{{ name }}</p>
-              <span v-if="pdata.handicap === 0" class="text-yellow-500 text-lg" title="Anchor">⚓</span>
-            </div>
-            <p class="text-3xl font-extrabold mt-1" :class="pdata.handicap === 0 ? 'text-yellow-600' : 'text-green-700'">
-              {{ pdata.handicap > 0 ? '+' + pdata.handicap : pdata.handicap }}
-            </p>
-            <p v-if="pdata.handicapLongs !== undefined" class="text-xs text-gray-500 mt-1">
-              Longs: <span class="font-semibold text-gray-700">+{{ pdata.handicapLongs }}</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Wins -->
-      <section>
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span class="inline-block w-1 h-5 rounded" style="background-color: #1a4731;"></span>
-          Wins
-        </h2>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="flex divide-x divide-gray-100">
-            <div
-              v-for="(player, i) in sortedByWins"
-              :key="player.name"
-              class="flex-1 flex flex-col items-center py-5 px-2"
-              :class="i === 0 ? 'bg-yellow-50' : ''"
-            >
-              <span v-if="i === 0" class="text-2xl mb-1">🏆</span>
-              <p class="font-semibold text-gray-700 text-sm">{{ player.name }}</p>
-              <p class="text-3xl font-extrabold mt-1" :class="i === 0 ? 'text-yellow-600' : 'text-gray-800'">
-                {{ player.wins }}
-              </p>
-              <p class="text-xs text-gray-400 mt-0.5">{{ player.wins === 1 ? 'win' : 'wins' }}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Rounds -->
-      <section>
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span class="inline-block w-1 h-5 rounded" style="background-color: #1a4731;"></span>
-          Rounds
-        </h2>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr style="background-color: #1a4731;" class="text-white">
-                  <th class="text-left px-4 py-3 font-semibold">Date</th>
-                  <th class="text-left px-4 py-3 font-semibold">Course</th>
-                  <th class="text-left px-4 py-3 font-semibold">Layout</th>
-                  <th class="text-left px-4 py-3 font-semibold">Winner</th>
-                  <th class="text-left px-4 py-3 font-semibold">Scores</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(round, i) in data.rounds"
-                  :key="i"
-                  :class="i % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
-                  class="border-t border-gray-100 hover:bg-green-50 transition-colors"
-                >
-                  <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ formatDate(round.date) }}</td>
-                  <td class="px-4 py-3 font-medium text-gray-800">{{ round.course }}</td>
-                  <td class="px-4 py-3 text-gray-600">{{ round.layout }}</td>
-                  <td class="px-4 py-3">
-                    <span class="font-semibold text-green-800">{{ round.winner }}</span>
-                  </td>
-                  <td class="px-4 py-3 text-gray-500">{{ formatScores(round.scores) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </main>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import ChainDivider from './components/ChainDivider.vue';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -150,13 +344,19 @@ const loading = ref(true);
 const uploading = ref(false);
 const toast = ref('');
 const uploadError = ref('');
+const uploadResult = ref(null);
 const fileInput = ref(null);
+const activeTab = ref('board');
+
+const tabs = [
+  ['board', 'Leaderboard'],
+  ['rounds', 'Rounds'],
+  ['upload', 'Upload CSV'],
+];
 
 async function fetchData() {
   const res = await axios.get(`${API}/api/data`);
-  if (res.data?.players) {
-    data.value = res.data;
-  }
+  if (res.data?.players) data.value = res.data;
 }
 
 onMounted(async () => {
@@ -179,26 +379,43 @@ async function handleFileChange(e) {
   uploading.value = true;
   uploadError.value = '';
   toast.value = '';
+  uploadResult.value = null;
   try {
     const form = new FormData();
     form.append('csv', file);
-    const res = await axios.post(`${API}/api/upload`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const res = await axios.post(`${API}/api/upload`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     await fetchData();
+    uploadResult.value = res.data;
     toast.value = `Round uploaded! ${res.data.winner} wins!`;
     setTimeout(() => { toast.value = ''; }, 5000);
   } catch (err) {
     uploadError.value = err.response?.data?.error || 'Upload failed';
-    setTimeout(() => { uploadError.value = ''; }, 6000);
+    setTimeout(() => { uploadError.value = ''; }, 5000);
   } finally {
     uploading.value = false;
     fileInput.value.value = '';
   }
 }
 
-const sortedByWins = computed(() => {
+const playerStats = computed(() => {
   return Object.entries(data.value.players)
-    .map(([name, p]) => ({ name, wins: p.wins || 0 }))
-    .sort((a, b) => b.wins - a.wins);
+    .map(([name, p]) => {
+      const played = data.value.rounds.filter(r => r.scores && r.scores[name] !== undefined).length;
+      const wins = p.wins || 0;
+      const winPct = played ? Math.round((wins / played) * 100) : 0;
+      return {
+        name,
+        handicap: p.handicap,
+        handicapLongs: p.handicapLongs,
+        wins,
+        played,
+        winPct,
+        isAnchor: p.handicap === 0,
+      };
+    })
+    .sort((a, b) => b.wins - a.wins || b.handicap - a.handicap);
 });
 
 function formatDate(iso) {
@@ -207,20 +424,27 @@ function formatDate(iso) {
   return `${parseInt(m)}/${parseInt(d)}/${y.slice(2)}`;
 }
 
-function formatScores(scores) {
-  if (!scores || !Object.keys(scores).length) return '—';
-  return Object.entries(scores)
-    .map(([name, val]) => {
-      const display = val === 0 ? 'E' : val > 0 ? `+${val}` : `${val}`;
-      return `${name}: ${display}`;
-    })
-    .join(', ');
+function formatScore(val) {
+  if (val === null || val === undefined) return '—';
+  if (val === 0) return 'E';
+  return val > 0 ? `+${val}` : `${val}`;
+}
+
+function formatHcp(val) {
+  if (val === null || val === undefined) return '—';
+  if (val === 0) return '0';
+  return val > 0 ? `+${val}` : `${val}`;
+}
+
+function sortedScores(scores) {
+  return Object.entries(scores).sort((a, b) => a[1] - b[1]);
 }
 </script>
 
 <style>
-body {
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
+
