@@ -154,7 +154,9 @@ const fileInput = ref(null);
 
 async function fetchData() {
   const res = await axios.get(`${API}/api/data`);
-  data.value = res.data;
+  if (res.data?.players) {
+    data.value = res.data;
+  }
 }
 
 onMounted(async () => {
