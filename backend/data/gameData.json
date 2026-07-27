@@ -1,9 +1,9 @@
 {
   "players": {
-    "Brandon": { "handicap": 0, "handicapLongs": 3, "wins": 3 },
-    "Caleb": { "handicap": -16, "wins": 1 },
-    "Josh": { "handicap": -9, "wins": 3 },
-    "Stack": { "handicap": -12, "wins": 2 }
+    "Brandon": { "handicap": 0, "handicapLongs": 3, "wins": 3, "played": 9 },
+    "Caleb": { "handicap": -16, "wins": 1, "played": 9 },
+    "Josh": { "handicap": -9, "wins": 3, "played": 9 },
+    "Stack": { "handicap": -12, "wins": 2, "played": 9 }
   },
   "rounds": [
     { "date": "2026-07-26", "course": "Vet Memorial", "layout": "Shorts", "winner": "Josh", "scores": {}, "totals": {}, "netScores": {} },

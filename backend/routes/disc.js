@@ -49,6 +49,9 @@ router.post('/upload', upload.single('csv'), (req, res) => {
     const longs = isLongs(parsed.layout);
     const { winner, netScores } = determineWinner(filteredScores, data.players, longs);
 
+    for (const name of matched) {
+      data.players[name].played = (data.players[name].played || 0) + 1;
+    }
     data.players[winner].wins = (data.players[winner].wins || 0) + 1;
     data.players = updateHandicaps(winner, data.players);
 
@@ -76,10 +79,11 @@ router.patch('/players/:name', (req, res) => {
     const { name } = req.params;
     const data = readData();
     if (!data.players[name]) return res.status(404).json({ error: 'Player not found' });
-    const { handicap, handicapLongs, wins } = req.body;
+    const { handicap, handicapLongs, wins, played } = req.body;
     if (handicap !== undefined) data.players[name].handicap = Math.min(0, Number(handicap));
     if (handicapLongs !== undefined) data.players[name].handicapLongs = Number(handicapLongs) || 0;
     if (wins !== undefined) data.players[name].wins = Math.max(0, Number(wins));
+    if (played !== undefined) data.players[name].played = Math.max(0, Number(played));
     writeData(data);
     res.json({ success: true, players: data.players });
   } catch (err) {

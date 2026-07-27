@@ -254,8 +254,9 @@
         <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;">
 
           <!-- Column headers -->
-          <div style="display: grid; grid-template-columns: 1.4fr 0.6fr 0.6fr 0.7fr 64px; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1); align-items: center;">
+          <div style="display: grid; grid-template-columns: 1.2fr 0.5fr 0.5fr 0.5fr 0.6fr 64px; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1); align-items: center;">
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">PLAYER</span>
+            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">PLAYED</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">WINS</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">HCP</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; letter-spacing: 0.5px;">LONGS</span>
@@ -267,9 +268,10 @@
             <!-- Static row -->
             <div
               v-if="editingPlayer !== name"
-              style="display: grid; grid-template-columns: 1.4fr 0.6fr 0.6fr 0.7fr 64px; padding: 13px 16px; border-top: 1px solid rgba(201,205,196,0.08); align-items: center;"
+              style="display: grid; grid-template-columns: 1.2fr 0.5fr 0.5fr 0.5fr 0.6fr 64px; padding: 13px 16px; border-top: 1px solid rgba(201,205,196,0.08); align-items: center;"
             >
               <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">{{ name }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">{{ pdata.played ?? 0 }}</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">{{ pdata.wins ?? 0 }}</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;"
                 :style="{ color: pdata.handicap <= 0 ? '#3E6B49' : '#D9A404' }">
@@ -287,7 +289,11 @@
               style="padding: 14px 16px; border-top: 1px solid rgba(201,205,196,0.08); background: rgba(21,32,24,0.5);"
             >
               <div style="font-family: Inter, sans-serif; font-weight: 600; font-size: 13px; color: #EFE9DA; margin-bottom: 12px;">{{ name }}</div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">PLAYED</div>
+                  <input type="number" v-model="editForm.played" min="0" :style="editInput" />
+                </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINS</div>
                   <input type="number" v-model="editForm.wins" min="0" :style="editInput" />
@@ -465,7 +471,8 @@ async function handleFileChange(e) {
 const playerStats = computed(() => {
   return Object.entries(data.value.players)
     .map(([name, p]) => {
-      const played = data.value.rounds.filter(r => r.scores && r.scores[name] !== undefined).length;
+      const scoredRounds = data.value.rounds.filter(r => r.scores && r.scores[name] !== undefined).length;
+      const played = Math.max(p.played || 0, scoredRounds);
       const wins = p.wins || 0;
       const winPct = played ? Math.round((wins / played) * 100) : 0;
       return {
@@ -505,6 +512,7 @@ const editForm = ref({ wins: 0, handicap: 0, handicapLongs: 0 });
 function startEdit(name, pdata) {
   editingPlayer.value = name;
   editForm.value = {
+    played: pdata.played ?? 0,
     wins: pdata.wins ?? 0,
     handicap: pdata.handicap ?? 0,
     handicapLongs: pdata.handicapLongs ?? 0,
@@ -514,6 +522,7 @@ function startEdit(name, pdata) {
 async function savePlayer(name) {
   try {
     await axios.patch(`${API}/api/players/${encodeURIComponent(name)}`, {
+      played: editForm.value.played,
       wins: editForm.value.wins,
       handicap: editForm.value.handicap,
       handicapLongs: editForm.value.handicapLongs,
