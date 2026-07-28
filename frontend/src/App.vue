@@ -89,12 +89,11 @@
           <!-- Column header -->
           <div style="
             display: grid;
-            grid-template-columns: 28px 1.5fr 0.55fr 0.65fr 0.6fr 0.8fr;
+            grid-template-columns: 1.5fr 0.55fr 0.65fr 0.6fr 0.8fr;
             gap: 0;
             padding: 10px 16px;
             border-bottom: 1px solid rgba(201,205,196,0.1);
           ">
-            <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">#</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYER</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">WINS</span>
             <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYED</span>
@@ -108,19 +107,13 @@
             :key="player.name"
             :style="{
               display: 'grid',
-              gridTemplateColumns: '28px 1.5fr 0.55fr 0.65fr 0.6fr 0.8fr',
+              gridTemplateColumns: '1.5fr 0.55fr 0.65fr 0.6fr 0.8fr',
               gap: '0',
               padding: '12px 16px',
               alignItems: 'center',
-              background: player.isAnchor ? 'rgba(217,164,4,0.14)' : 'transparent',
               borderTop: idx > 0 ? '1px solid rgba(201,205,196,0.08)' : 'none',
             }"
           >
-            <!-- Rank -->
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(239,233,218,0.5);">
-              {{ idx + 1 }}
-            </span>
-
             <!-- Name -->
             <span style="display: flex; align-items: center; gap: 6px; min-width: 0;">
               <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -980,11 +973,10 @@ const playerStats = computed(() => {
         wins,
         played,
         winPct,
-        isAnchor: p.handicap === 0,
         streak: currentStreak(name),
       };
     })
-    .sort((a, b) => b.wins - a.wins || b.handicap - a.handicap);
+    .sort((a, b) => b.handicap - a.handicap);
 });
 
 function formatDate(iso) {
