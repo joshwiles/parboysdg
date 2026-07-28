@@ -122,8 +122,15 @@
             </span>
 
             <!-- Name -->
-            <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">
-              {{ player.name }}
+            <span style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+              <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ player.name }}
+              </span>
+              <span
+                v-if="player.streak >= 1"
+                title="Current win streak"
+                style="display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 999px; background: rgba(217,164,4,0.16); font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #D9A404; flex-shrink: 0;"
+              >🔥{{ player.streak }}</span>
             </span>
 
             <!-- Wins -->
@@ -166,6 +173,117 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Wins over time chart -->
+        <div
+          v-if="chart"
+          style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px; margin-top: 12px;"
+        >
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <p style="margin: 0; font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.6px; font-weight: 600;">WINS OVER TIME</p>
+            <button @click="showWinsTable = !showWinsTable" :style="{ ...ghostEditBtn, fontSize: '10px', padding: '3px 8px' }">
+              {{ showWinsTable ? 'Show chart' : 'Show table' }}
+            </button>
+          </div>
+
+          <!-- Legend -->
+          <div style="display: flex; flex-wrap: wrap; gap: 10px 14px; margin-bottom: 12px;">
+            <div v-for="s in chart.series" :key="'legend-' + s.name" style="display: flex; align-items: center; gap: 6px;">
+              <span :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: s.color, flexShrink: 0 }"></span>
+              <span style="font-family: Inter, sans-serif; font-size: 12px; color: rgba(239,233,218,0.75);">{{ s.name }}</span>
+            </div>
+          </div>
+
+          <!-- Table view -->
+          <div v-if="showWinsTable" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align: left; padding: 6px 8px; font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; border-bottom: 1px solid rgba(201,205,196,0.1);">DATE</th>
+                  <th v-for="s in chart.series" :key="'th-' + s.name" style="text-align: right; padding: 6px 8px; font-family: Oswald, sans-serif; font-size: 10px; color: rgba(201,205,196,0.4); letter-spacing: 0.5px; border-bottom: 1px solid rgba(201,205,196,0.1);">{{ s.name }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(pt, i) in chart.points" :key="'row-' + i">
+                  <td style="padding: 6px 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.6); white-space: nowrap;">{{ pt.date ? formatDate(pt.date) : '—' }}</td>
+                  <td v-for="s in chart.series" :key="'td-' + s.name + i" style="text-align: right; padding: 6px 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(239,233,218,0.85);">{{ pt.counts[s.name] }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Chart -->
+          <div v-else style="position: relative;">
+            <svg
+              :viewBox="`0 0 ${chart.width} ${chart.height}`"
+              style="width: 100%; height: auto; display: block; overflow: visible;"
+              @mousemove="onChartHover"
+              @mouseleave="hoverIdx = null"
+            >
+              <!-- gridlines + y labels -->
+              <g v-for="t in chart.yTicks" :key="'gy' + t.value">
+                <line :x1="chart.padL" :x2="chart.width - chart.padR" :y1="t.y" :y2="t.y" stroke="rgba(201,205,196,0.08)" stroke-width="1" />
+                <text :x="chart.padL - 8" :y="t.y + 3" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" fill="rgba(239,233,218,0.4)">{{ t.value }}</text>
+              </g>
+
+              <!-- baseline -->
+              <line :x1="chart.padL" :x2="chart.width - chart.padR" :y1="chart.height - chart.padB" :y2="chart.height - chart.padB" stroke="rgba(201,205,196,0.2)" stroke-width="1" />
+
+              <!-- x labels -->
+              <text
+                v-for="t in chart.xTicks"
+                :key="'xl' + t.i"
+                :x="t.x"
+                :y="chart.height - chart.padB + 16"
+                text-anchor="middle"
+                font-family="'JetBrains Mono', monospace"
+                font-size="9"
+                fill="rgba(239,233,218,0.4)"
+              >{{ t.label }}</text>
+
+              <!-- lines -->
+              <path v-for="s in chart.series" :key="'line' + s.name" :d="s.path" fill="none" :stroke="s.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+              <!-- end dots -->
+              <circle v-for="s in chart.series" :key="'dot' + s.name" :cx="s.last.x" :cy="s.last.y" r="4" :fill="s.color" stroke="#1F3327" stroke-width="2" />
+
+              <!-- hover crosshair -->
+              <g v-if="hoverIdx !== null">
+                <line :x1="chart.hoverX" :x2="chart.hoverX" :y1="chart.padT" :y2="chart.height - chart.padB" stroke="rgba(239,233,218,0.25)" stroke-width="1" />
+                <circle v-for="s in chart.series" :key="'hdot' + s.name" :cx="chart.hoverX" :cy="s.pointsPx[hoverIdx].y" r="4" :fill="s.color" stroke="#1F3327" stroke-width="2" />
+              </g>
+
+              <!-- hover hit area -->
+              <rect :x="chart.padL" :y="chart.padT" :width="chart.width - chart.padL - chart.padR" :height="chart.height - chart.padT - chart.padB" fill="transparent" />
+            </svg>
+
+            <!-- tooltip -->
+            <div
+              v-if="hoverIdx !== null"
+              :style="{
+                position: 'absolute',
+                top: '4px',
+                left: chart.hoverX / chart.width < 0.55 ? `calc(${(chart.hoverX / chart.width) * 100}% + 12px)` : 'auto',
+                right: chart.hoverX / chart.width >= 0.55 ? `calc(${100 - (chart.hoverX / chart.width) * 100}% + 12px)` : 'auto',
+                background: '#152018',
+                border: '1px solid rgba(201,205,196,0.2)',
+                borderRadius: '4px',
+                padding: '8px 10px',
+                pointerEvents: 'none',
+                minWidth: '110px',
+              }"
+            >
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(239,233,218,0.45); margin-bottom: 5px;">
+                {{ chart.points[hoverIdx].date ? formatDate(chart.points[hoverIdx].date) : 'Start' }}
+              </div>
+              <div v-for="s in chart.series" :key="'tt-' + s.name" style="display: flex; align-items: center; gap: 6px; font-family: Inter, sans-serif; font-size: 12px; color: #EFE9DA; margin-top: 2px;">
+                <span :style="{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: s.color, flexShrink: 0 }"></span>
+                <span style="flex: 1;">{{ s.name }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">{{ chart.points[hoverIdx].counts[s.name] }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -619,6 +737,91 @@ const tabs = [
   ['players', 'Players'],
 ];
 
+// Dark-surface categorical palette (validated against card bg #1F3327), fixed slot order per player
+const SERIES_COLORS = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
+
+const showWinsTable = ref(false);
+const hoverIdx = ref(null);
+
+function niceTicks(max) {
+  if (max <= 0) return [0, 1];
+  const target = 4;
+  const raw = max / target;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+  const norm = raw / mag;
+  let step;
+  if (norm < 1.5) step = 1 * mag;
+  else if (norm < 3) step = 2 * mag;
+  else if (norm < 7) step = 5 * mag;
+  else step = 10 * mag;
+  step = Math.max(1, Math.round(step));
+  const ticks = [];
+  for (let v = 0; v <= max + step * 0.001; v += step) ticks.push(Math.round(v));
+  return ticks;
+}
+
+const chart = computed(() => {
+  const players = Object.keys(data.value.players);
+  if (!players.length) return null;
+
+  const rounds = data.value.rounds
+    .filter(r => r.winner && data.value.players[r.winner])
+    .slice()
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  if (rounds.length < 2) return null;
+
+  const counts = Object.fromEntries(players.map(p => [p, 0]));
+  const points = [{ date: rounds[0].date, counts: { ...counts } }];
+  for (const r of rounds) {
+    counts[r.winner]++;
+    points.push({ date: r.date, counts: { ...counts } });
+  }
+
+  const width = 600, height = 200, padL = 30, padR = 10, padT = 10, padB = 26;
+  const plotW = width - padL - padR;
+  const plotH = height - padT - padB;
+  const maxWins = Math.max(1, ...points.map(pt => Math.max(...players.map(p => pt.counts[p]))));
+  const ticks = niceTicks(maxWins);
+  const maxY = ticks[ticks.length - 1];
+
+  const n = points.length;
+  const xAt = i => n === 1 ? padL : padL + (i / (n - 1)) * plotW;
+  const yAt = v => padT + plotH - (v / maxY) * plotH;
+
+  const series = players.map((name, idx) => {
+    const pointsPx = points.map((pt, i) => ({ x: xAt(i), y: yAt(pt.counts[name]) }));
+    const path = pointsPx.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    return { name, color: SERIES_COLORS[idx % SERIES_COLORS.length], path, pointsPx, last: pointsPx[pointsPx.length - 1] };
+  });
+
+  const yTicks = ticks.map(value => ({ value, y: yAt(value) }));
+
+  const maxLabels = 5;
+  const labelStep = Math.max(1, Math.ceil(n / maxLabels));
+  const xTicks = [];
+  for (let i = 0; i < n; i += labelStep) {
+    xTicks.push({ i, x: xAt(i), label: points[i].date ? formatDate(points[i].date) : 'Start' });
+  }
+  if (xTicks[xTicks.length - 1]?.i !== n - 1) {
+    xTicks.push({ i: n - 1, x: xAt(n - 1), label: points[n - 1].date ? formatDate(points[n - 1].date) : 'Start' });
+  }
+
+  return { width, height, padL, padR, padT, padB, points, series, yTicks, xTicks, xAt, hoverX: hoverIdx.value !== null ? xAt(hoverIdx.value) : null };
+});
+
+function onChartHover(e) {
+  if (!chart.value) return;
+  const svg = e.currentTarget;
+  const rect = svg.getBoundingClientRect();
+  const scale = chart.value.width / rect.width;
+  const svgX = (e.clientX - rect.left) * scale;
+  const { padL, width, padR, points } = chart.value;
+  const plotW = width - padL - padR;
+  const ratio = Math.min(1, Math.max(0, (svgX - padL) / plotW));
+  hoverIdx.value = Math.round(ratio * (points.length - 1));
+}
+
 async function fetchData() {
   const res = await axios.get(`${API}/api/data`);
   if (res.data?.players) data.value = res.data;
@@ -744,16 +947,31 @@ function cancelPreview() {
   previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} };
 }
 
+function participated(round, name) {
+  const hasScores = round.scores && Object.keys(round.scores).length > 0;
+  return hasScores
+    ? round.winner === name || round.scores[name] !== undefined
+    : true; // unknown round — assume everyone played
+}
+
+function currentStreak(name) {
+  const playerRounds = data.value.rounds
+    .filter(r => participated(r, name))
+    .slice()
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  let streak = 0;
+  for (const r of playerRounds) {
+    if (r.winner === name) streak++;
+    else break;
+  }
+  return streak;
+}
+
 const playerStats = computed(() => {
   return Object.entries(data.value.players)
     .map(([name, p]) => {
       const wins = data.value.rounds.filter(r => r.winner === name).length;
-      const played = data.value.rounds.filter(r => {
-        const hasScores = r.scores && Object.keys(r.scores).length > 0;
-        return hasScores
-          ? r.winner === name || r.scores[name] !== undefined
-          : true; // unknown round — assume everyone played
-      }).length;
+      const played = data.value.rounds.filter(r => participated(r, name)).length;
       const winPct = played ? Math.round((wins / played) * 100) : 0;
       return {
         name,
@@ -763,6 +981,7 @@ const playerStats = computed(() => {
         played,
         winPct,
         isAnchor: p.handicap === 0,
+        streak: currentStreak(name),
       };
     })
     .sort((a, b) => b.wins - a.wins || b.handicap - a.handicap);
