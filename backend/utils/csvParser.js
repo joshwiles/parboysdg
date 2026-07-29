@@ -24,6 +24,16 @@ function parsePlusMinus(val) {
   return parseInt(val, 10);
 }
 
+// RoundRating is blank for courses UDisc has no official rating for — unlike +/-,
+// a blank here means "no data", not zero.
+function parseRating(val) {
+  if (val === undefined || val === null) return null;
+  const trimmed = String(val).trim();
+  if (trimmed === '') return null;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : null;
+}
+
 // Match a CSV player name against known player names.
 // Handles cases like "Josh W" matching "Josh".
 function matchName(csvName, knownPlayers) {
@@ -62,6 +72,7 @@ function parseCSV(buffer, knownPlayers = []) {
 
   const scores = {};
   const totals = {};
+  const ratings = {};
 
   for (const row of normalized) {
     const csvName = row['playername'] || row['player'] || '';
@@ -75,9 +86,11 @@ function parseCSV(buffer, knownPlayers = []) {
     scores[resolvedName] = parsePlusMinus(row['+/-']);
     const total = row['total'];
     totals[resolvedName] = total ? parseInt(total, 10) : null;
+    const rating = parseRating(row['roundrating']);
+    if (rating !== null) ratings[resolvedName] = rating;
   }
 
-  return { course, layout, date, scores, totals };
+  return { course, layout, date, scores, totals, ratings };
 }
 
-module.exports = { parseCSV };
+module.exports = { parseCSV, matchName };

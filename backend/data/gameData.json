@@ -48,6 +48,11 @@
         "Josh": -11,
         "Brandon": 0,
         "Caleb": -16
+      },
+      "ratings": {
+        "Brandon": 182,
+        "Josh": 149,
+        "Caleb": 126
       }
     },
     {
@@ -102,6 +107,11 @@
         "Josh": -11,
         "Brandon": 0,
         "Caleb": -15
+      },
+      "ratings": {
+        "Brandon": 216,
+        "Josh": 139,
+        "Caleb": 118
       }
     },
     {
@@ -129,6 +139,11 @@
         "Josh": -10,
         "Brandon": 0,
         "Caleb": -14
+      },
+      "ratings": {
+        "Brandon": 215,
+        "Caleb": 102,
+        "Josh": 130
       }
     },
     {
@@ -156,6 +171,11 @@
         "Josh": -10,
         "Caleb": -14,
         "Stack": -11
+      },
+      "ratings": {
+        "Josh": 143,
+        "Caleb": 120,
+        "Stack": 143
       }
     },
     {
@@ -210,6 +230,11 @@
         "Josh": -10,
         "Brandon": 0,
         "Caleb": -15
+      },
+      "ratings": {
+        "Brandon": 182,
+        "Caleb": 118,
+        "Josh": 131
       }
     },
     {
@@ -237,6 +262,11 @@
         "Josh": -11,
         "Brandon": 0,
         "Caleb": -15
+      },
+      "ratings": {
+        "Brandon": 158,
+        "Josh": 129,
+        "Caleb": 97
       }
     },
     {
@@ -264,6 +294,11 @@
         "Josh": -10,
         "Brandon": 0,
         "Caleb": -14
+      },
+      "ratings": {
+        "Brandon": 184,
+        "Caleb": 110,
+        "Josh": 123
       }
     }
   ]

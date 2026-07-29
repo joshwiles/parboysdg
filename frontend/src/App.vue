@@ -721,7 +721,7 @@ const uploadError = ref('');
 const fileInput = ref(null);
 const activeTab = ref('board');
 const preview = ref(null);
-const previewForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} });
+const previewForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {}, ratings: {} });
 
 const tabs = [
   ['board', 'Leaderboard'],
@@ -859,6 +859,7 @@ async function handleFileChange(e) {
       scores: { ...res.data.scores },
       totals: { ...res.data.totals },
       handicaps: hcps,
+      ratings: { ...res.data.ratings },
     };
   } catch (err) {
     uploadError.value = err.response?.data?.error || 'Failed to parse CSV';
@@ -922,6 +923,7 @@ async function confirmRound() {
       totals: cleanTotals,
       netScores: cleanNets,
       handicaps: { ...previewForm.value.handicaps },
+      ratings: { ...previewForm.value.ratings },
     });
     await fetchData();
     toast.value = `Round submitted! ${previewForm.value.winner} wins!`;
@@ -937,7 +939,7 @@ async function confirmRound() {
 
 function cancelPreview() {
   preview.value = null;
-  previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} };
+  previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {}, ratings: {} };
 }
 
 function participated(round, name) {
@@ -960,6 +962,20 @@ function currentStreak(name) {
   return streak;
 }
 
+const RATING_WINDOW = 8;
+
+function ratingStats(name) {
+  const rated = data.value.rounds
+    .filter(r => r.ratings && r.ratings[name] != null)
+    .slice()
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, RATING_WINDOW);
+  if (!rated.length) return { avgRating: null, pdgaRating: null };
+  const avgRating = rated.reduce((sum, r) => sum + r.ratings[name], 0) / rated.length;
+  const pdgaRating = -0.0065 * avgRating * avgRating + 4.8259 * avgRating + 206.48;
+  return { avgRating, pdgaRating };
+}
+
 const playerStats = computed(() => {
   return Object.entries(data.value.players)
     .map(([name, p]) => {
@@ -974,6 +990,7 @@ const playerStats = computed(() => {
         played,
         winPct,
         streak: currentStreak(name),
+        ...ratingStats(name),
       };
     })
     .sort((a, b) => b.handicap - a.handicap);
@@ -995,6 +1012,14 @@ function formatHcp(val) {
   if (val === null || val === undefined) return '—';
   if (val === 0) return '0';
   return val > 0 ? `+${val}` : `${val}`;
+}
+
+function formatRating(val) {
+  return val === null || val === undefined ? '—' : val.toFixed(1);
+}
+
+function formatPdga(val) {
+  return val === null || val === undefined ? '—' : Math.round(val);
 }
 
 const editingPlayer = ref(null);

@@ -42,9 +42,11 @@ router.post('/upload', upload.single('csv'), (req, res) => {
 
     const filteredScores = {};
     const filteredTotals = {};
+    const filteredRatings = {};
     for (const name of matched) {
       filteredScores[name] = parsed.scores[name];
       if (parsed.totals[name] != null) filteredTotals[name] = parsed.totals[name];
+      if (parsed.ratings[name] != null) filteredRatings[name] = parsed.ratings[name];
     }
 
     const longs = isLongs(parsed.layout);
@@ -64,7 +66,8 @@ router.post('/upload', upload.single('csv'), (req, res) => {
       winner,
       scores: filteredScores,
       totals: filteredTotals,
-      netScores
+      netScores,
+      ratings: filteredRatings
     };
 
     data.rounds.unshift(newRound);
@@ -93,6 +96,7 @@ router.post('/preview', upload.single('csv'), (req, res) => {
       date: parsed.date,
       scores: parsed.scores,
       totals: parsed.totals,
+      ratings: parsed.ratings,
       netScores,
       winner,
     });
@@ -103,7 +107,7 @@ router.post('/preview', upload.single('csv'), (req, res) => {
 
 router.post('/confirm-round', (req, res) => {
   try {
-    const { course, date, layout, winner, scores, totals, netScores, handicaps } = req.body;
+    const { course, date, layout, winner, scores, totals, netScores, handicaps, ratings } = req.body;
     const data = readData();
     const matched = Object.keys(scores || {});
     if (!matched.length) return res.status(400).json({ error: 'No scores provided' });
@@ -125,7 +129,7 @@ router.post('/confirm-round', (req, res) => {
     }
     data.players[winner].wins = (data.players[winner].wins || 0) + 1;
     data.players = updateHandicaps(winner, data.players);
-    data.rounds.unshift({ id: uid(), date, course, layout, winner, scores, totals: totals || {}, netScores: netScores || {}, handicaps: savedHandicaps });
+    data.rounds.unshift({ id: uid(), date, course, layout, winner, scores, totals: totals || {}, netScores: netScores || {}, handicaps: savedHandicaps, ratings: ratings || {} });
     writeData(data);
     res.json({ success: true, winner, players: data.players });
   } catch (err) {
