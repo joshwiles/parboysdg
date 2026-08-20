@@ -315,11 +315,11 @@
             </div>
             <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
-              <input type="date" v-model="roundEditForm.date" :style="editInput" />
+              <input type="date" v-model="roundEditForm.date" :style="compactInput" />
             </div>
             <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME</div>
-              <input type="time" v-model="roundEditForm.time" :style="editInput" />
+              <input type="time" v-model="roundEditForm.time" :style="compactInput" />
             </div>
             <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
@@ -369,11 +369,11 @@
                 </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
-                  <input type="date" v-model="roundEditForm.date" :style="editInput" />
+                  <input type="date" v-model="roundEditForm.date" :style="compactInput" />
                 </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME</div>
-                  <input type="time" v-model="roundEditForm.time" :style="editInput" />
+                  <input type="time" v-model="roundEditForm.time" :style="compactInput" />
                 </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
@@ -630,11 +630,11 @@
               </div>
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
-                <input type="date" v-model="previewForm.date" :style="editInput" />
+                <input type="date" v-model="previewForm.date" :style="compactInput" />
               </div>
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME (AUTO FROM CSV)</div>
-                <input type="time" v-model="previewForm.time" :style="editInput" />
+                <input type="time" v-model="previewForm.time" :style="compactInput" />
               </div>
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
@@ -1181,6 +1181,15 @@ const editInput = {
   borderRadius: '4px',
   color: '#EFE9DA',
   boxSizing: 'border-box',
+};
+
+// Native date/time pickers render at a UA-controlled minimum width that
+// width:100% can't shrink below — trim padding to claw back space, and clip
+// instead of visually overflowing into a neighboring grid column.
+const compactInput = {
+  ...editInput,
+  padding: '7px 4px',
+  overflow: 'hidden',
 };
 
 const ghostEditBtn = {
