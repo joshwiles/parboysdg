@@ -1,6 +1,13 @@
 <template>
   <div style="min-height: 100vh; background: #152018; font-family: Inter, sans-serif;">
 
+    <!-- Shared suggestions for the free-text LAYOUT fields — actual layout values are
+         arbitrary UDisc course/tee names, not limited to these two -->
+    <datalist id="layoutOptions">
+      <option value="Shorts" />
+      <option value="Longs" />
+    </datalist>
+
     <!-- Header -->
     <div style="max-width: 640px; margin: 0 auto; padding: 28px 20px 0;">
       <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
@@ -316,10 +323,7 @@
             </div>
             <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
-              <select v-model="roundEditForm.layout" :style="editInput">
-                <option>Shorts</option>
-                <option>Longs</option>
-              </select>
+              <input type="text" v-model="roundEditForm.layout" list="layoutOptions" :style="editInput" />
             </div>
             <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINNER</div>
@@ -373,10 +377,7 @@
                 </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
-                  <select v-model="roundEditForm.layout" :style="editInput">
-                    <option>Shorts</option>
-                    <option>Longs</option>
-                  </select>
+                  <input type="text" v-model="roundEditForm.layout" list="layoutOptions" :style="editInput" />
                 </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINNER</div>
@@ -637,10 +638,7 @@
               </div>
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
-                <select v-model="previewForm.layout" :style="editInput" @change="reinitPreviewHcps">
-                  <option>Shorts</option>
-                  <option>Longs</option>
-                </select>
+                <input type="text" v-model="previewForm.layout" list="layoutOptions" :style="editInput" @change="reinitPreviewHcps" />
               </div>
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">WINNER</div>
