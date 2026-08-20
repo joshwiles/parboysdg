@@ -7,7 +7,18 @@ const { isLongs, determineWinner, updateHandicaps } = require('../utils/handicap
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
-const DATA_FILE = path.join(__dirname, '../data/gameData.json');
+
+// Seed file lives in the repo. On Railway, a persistent Volume mount survives
+// deploys (unlike the repo checkout, which resets to git on every push) — so
+// once RAILWAY_VOLUME_MOUNT_PATH is set, live data lives there instead.
+const SEED_FILE = path.join(__dirname, '../data/gameData.json');
+const DATA_FILE = process.env.RAILWAY_VOLUME_MOUNT_PATH
+  ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'gameData.json')
+  : SEED_FILE;
+
+if (DATA_FILE !== SEED_FILE && !fs.existsSync(DATA_FILE)) {
+  fs.copyFileSync(SEED_FILE, DATA_FILE);
+}
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
