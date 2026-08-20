@@ -301,7 +301,7 @@
         <!-- New round form -->
         <div v-if="editingRound === '__new__'" style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px; margin-bottom: 8px;">
           <div style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 12px;">NEW ROUND</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-bottom: 12px;">
             <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">COURSE</div>
               <input type="text" v-model="roundEditForm.course" :style="editInput" />
@@ -311,7 +311,7 @@
               <input type="date" v-model="roundEditForm.date" :style="editInput" />
             </div>
             <div>
-              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME (OPTIONAL)</div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME</div>
               <input type="time" v-model="roundEditForm.time" :style="editInput" />
             </div>
             <div>
@@ -358,7 +358,7 @@
           >
             <!-- ── EDIT MODE ── -->
             <div v-if="editingRound === round.id" style="padding: 16px;">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-bottom: 12px;">
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">COURSE</div>
                   <input type="text" v-model="roundEditForm.course" :style="editInput" />
@@ -368,7 +368,7 @@
                   <input type="date" v-model="roundEditForm.date" :style="editInput" />
                 </div>
                 <div>
-                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME (OPTIONAL)</div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME</div>
                   <input type="time" v-model="roundEditForm.time" :style="editInput" />
                 </div>
                 <div>
@@ -622,7 +622,7 @@
           <!-- Metadata -->
           <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; padding: 16px;">
             <p style="margin: 0 0 12px; font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; letter-spacing: 0.6px; font-weight: 600;">ROUND PREVIEW — EDIT BEFORE SUBMITTING</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-bottom: 10px;">
               <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">COURSE</div>
                 <input type="text" v-model="previewForm.course" :style="editInput" />
