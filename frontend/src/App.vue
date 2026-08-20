@@ -210,9 +210,12 @@
           <div v-else style="position: relative;">
             <svg
               :viewBox="`0 0 ${chart.width} ${chart.height}`"
-              style="width: 100%; height: auto; display: block; overflow: visible;"
+              style="width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y;"
               @mousemove="onChartHover"
               @mouseleave="hoverIdx = null"
+              @touchstart="onChartHover"
+              @touchmove="onChartHover"
+              @touchend="hoverIdx = null"
             >
               <!-- gridlines + y labels -->
               <g v-for="t in chart.yTicks" :key="'gy' + t.value">
@@ -486,7 +489,7 @@
                       background: name === round.winner ? 'rgba(217,164,4,0.08)' : 'transparent',
                     }"
                   >
-                    <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '700' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.8)' }">
+                    <span :style="{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: name === round.winner ? '700' : '400', color: name === round.winner ? '#D9A404' : 'rgba(239,233,218,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }">
                       {{ name }}
                     </span>
                     <!-- NET — most important, displayed first and boldest -->
@@ -542,7 +545,7 @@
               v-if="editingPlayer !== name"
               style="display: grid; grid-template-columns: 1.2fr 0.5fr 0.5fr 0.5fr 0.6fr 64px; padding: 13px 16px; border-top: 1px solid rgba(201,205,196,0.08); align-items: center;"
             >
-              <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA;">{{ name }}</span>
+              <span style="font-family: Inter, sans-serif; font-weight: 600; font-size: 14px; color: #EFE9DA; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">{{ name }}</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">{{ pdata.played ?? 0 }}</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: rgba(239,233,218,0.8);">{{ pdata.wins ?? 0 }}</span>
               <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;"
@@ -651,7 +654,7 @@
           <!-- Scores table -->
           <div style="background: #1F3327; border: 1px solid rgba(201,205,196,0.13); border-radius: 6px; overflow: hidden;">
             <!-- Header -->
-            <div style="display: grid; grid-template-columns: 1.2fr 80px 80px 80px; gap: 0; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
+            <div style="display: grid; grid-template-columns: 1fr 58px 58px 58px; gap: 6px; padding: 10px 16px; border-bottom: 1px solid rgba(201,205,196,0.1);">
               <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600;">PLAYER</span>
               <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">GROSS</span>
               <span style="font-family: Oswald, sans-serif; font-size: 11px; color: #D9A404; font-weight: 600; text-align: center;">HCP</span>
@@ -663,15 +666,15 @@
               :key="name"
               :style="{
                 display: 'grid',
-                gridTemplateColumns: '1.2fr 80px 80px 80px',
-                gap: '0',
+                gridTemplateColumns: '1fr 58px 58px 58px',
+                gap: '6px',
                 padding: '10px 16px',
                 alignItems: 'center',
                 borderTop: '1px solid rgba(201,205,196,0.08)',
                 background: previewForm.winner === name ? 'rgba(217,164,4,0.1)' : 'transparent',
               }"
             >
-              <span :style="{ fontFamily: 'Inter, sans-serif', fontWeight: '600', fontSize: '14px', color: previewForm.winner === name ? '#D9A404' : '#EFE9DA' }">
+              <span :style="{ fontFamily: 'Inter, sans-serif', fontWeight: '600', fontSize: '14px', color: previewForm.winner === name ? '#D9A404' : '#EFE9DA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }">
                 {{ previewForm.winner === name ? '🏆 ' : '' }}{{ name }}
               </span>
               <input
@@ -772,7 +775,7 @@ const chart = computed(() => {
   const rounds = data.value.rounds
     .filter(r => r.winner && data.value.players[r.winner])
     .slice()
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    .sort((a, b) => roundSortKey(a).localeCompare(roundSortKey(b)));
 
   if (rounds.length < 2) return null;
 
@@ -820,7 +823,8 @@ function onChartHover(e) {
   const svg = e.currentTarget;
   const rect = svg.getBoundingClientRect();
   const scale = chart.value.width / rect.width;
-  const svgX = (e.clientX - rect.left) * scale;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const svgX = (clientX - rect.left) * scale;
   const { padL, width, padR, points } = chart.value;
   const plotW = width - padL - padR;
   const ratio = Math.min(1, Math.max(0, (svgX - padL) / plotW));
@@ -967,7 +971,7 @@ function currentStreak(name) {
   const playerRounds = data.value.rounds
     .filter(r => participated(r, name))
     .slice()
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    .sort((a, b) => roundSortKey(b).localeCompare(roundSortKey(a)));
   let streak = 0;
   for (const r of playerRounds) {
     if (r.winner === name) streak++;
@@ -982,7 +986,7 @@ function ratingStats(name) {
   const rated = data.value.rounds
     .filter(r => r.ratings && r.ratings[name] != null)
     .slice()
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .sort((a, b) => roundSortKey(b).localeCompare(roundSortKey(a)))
     .slice(0, RATING_WINDOW);
   if (!rated.length) return { avgRating: null, pdgaRating: null };
   const avgRating = rated.reduce((sum, r) => sum + r.ratings[name], 0) / rated.length;
@@ -1014,6 +1018,10 @@ function formatDate(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
   return `${parseInt(m)}/${parseInt(d)}/${y.slice(2)}`;
+}
+
+function roundSortKey(r) {
+  return `${r.date || ''}T${r.time || '00:00'}`;
 }
 
 function formatTime(hhmm) {
@@ -1168,7 +1176,7 @@ const editInput = {
   width: '100%',
   padding: '7px 10px',
   fontFamily: "'JetBrains Mono', monospace",
-  fontSize: '13px',
+  fontSize: '16px', // 16px avoids iOS Safari auto-zooming the page on input focus
   fontWeight: '700',
   background: '#152018',
   border: '1px solid rgba(201,205,196,0.25)',
