@@ -308,6 +308,10 @@
               <input type="date" v-model="roundEditForm.date" :style="editInput" />
             </div>
             <div>
+              <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME (OPTIONAL)</div>
+              <input type="time" v-model="roundEditForm.time" :style="editInput" />
+            </div>
+            <div>
               <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
               <select v-model="roundEditForm.layout" :style="editInput">
                 <option>Shorts</option>
@@ -359,6 +363,10 @@
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">DATE</div>
                   <input type="date" v-model="roundEditForm.date" :style="editInput" />
+                </div>
+                <div>
+                  <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME (OPTIONAL)</div>
+                  <input type="time" v-model="roundEditForm.time" :style="editInput" />
                 </div>
                 <div>
                   <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
@@ -430,7 +438,7 @@
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(239,233,218,0.4);">
-                      {{ round.date ? formatDate(round.date) : 'Date unknown' }}
+                      {{ round.date ? formatDate(round.date) : 'Date unknown' }}{{ round.time ? ' · ' + formatTime(round.time) : '' }}
                     </span>
                     <span v-if="round.winner" style="font-family: Inter, sans-serif; font-size: 12px; color: #D9A404; font-weight: 600;">
                       🏆 {{ round.winner }}
@@ -621,6 +629,10 @@
                 <input type="date" v-model="previewForm.date" :style="editInput" />
               </div>
               <div>
+                <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">TIME (AUTO FROM CSV)</div>
+                <input type="time" v-model="previewForm.time" :style="editInput" />
+              </div>
+              <div>
                 <div style="font-family: Oswald, sans-serif; font-size: 10px; color: #D9A404; letter-spacing: 0.5px; margin-bottom: 5px;">LAYOUT</div>
                 <select v-model="previewForm.layout" :style="editInput" @change="reinitPreviewHcps">
                   <option>Shorts</option>
@@ -721,7 +733,7 @@ const uploadError = ref('');
 const fileInput = ref(null);
 const activeTab = ref('board');
 const preview = ref(null);
-const previewForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {}, ratings: {} });
+const previewForm = ref({ course: '', date: '', time: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {}, ratings: {} });
 
 const tabs = [
   ['board', 'Leaderboard'],
@@ -854,6 +866,7 @@ async function handleFileChange(e) {
     previewForm.value = {
       course: res.data.course,
       date: res.data.date,
+      time: res.data.time || '',
       layout: res.data.layout,
       winner: res.data.winner,
       scores: { ...res.data.scores },
@@ -917,6 +930,7 @@ async function confirmRound() {
     await axios.post(`${API}/api/confirm-round`, {
       course: previewForm.value.course,
       date: previewForm.value.date,
+      time: previewForm.value.time,
       layout: previewForm.value.layout,
       winner: previewForm.value.winner,
       scores: cleanScores,
@@ -939,7 +953,7 @@ async function confirmRound() {
 
 function cancelPreview() {
   preview.value = null;
-  previewForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {}, ratings: {} };
+  previewForm.value = { course: '', date: '', time: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {}, ratings: {} };
 }
 
 function participated(round, name) {
@@ -1002,6 +1016,14 @@ function formatDate(iso) {
   return `${parseInt(m)}/${parseInt(d)}/${y.slice(2)}`;
 }
 
+function formatTime(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = hhmm.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 function formatScore(val) {
   if (val === null || val === undefined) return '—';
   if (val === 0) return 'E';
@@ -1027,7 +1049,7 @@ const editForm = ref({ wins: 0, handicap: 0, handicapLongs: 0 });
 
 const expandedRounds = ref({});
 const editingRound = ref(null);
-const roundEditForm = ref({ course: '', date: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} });
+const roundEditForm = ref({ course: '', date: '', time: '', layout: 'Shorts', winner: '', scores: {}, totals: {}, handicaps: {} });
 
 function toggleRound(id) {
   expandedRounds.value = { ...expandedRounds.value, [id]: !expandedRounds.value[id] };
@@ -1045,6 +1067,7 @@ function startEditRound(round) {
   roundEditForm.value = {
     course: round.course || '',
     date: round.date || '',
+    time: round.time || '',
     layout: round.layout || 'Shorts',
     winner: round.winner || '',
     scores,
@@ -1063,7 +1086,7 @@ function startNewRound() {
     totals[name] = '';
     handicaps[name] = getHcp(name, 'Shorts');
   }
-  roundEditForm.value = { course: '', date: '', layout: 'Shorts', winner: '', scores, totals, handicaps };
+  roundEditForm.value = { course: '', date: '', time: '', layout: 'Shorts', winner: '', scores, totals, handicaps };
   editingRound.value = '__new__';
 }
 
@@ -1084,6 +1107,7 @@ async function saveRound(id) {
     const payload = {
       course: roundEditForm.value.course,
       date: roundEditForm.value.date,
+      time: roundEditForm.value.time,
       layout: roundEditForm.value.layout,
       winner: roundEditForm.value.winner,
       scores: cleanScores,

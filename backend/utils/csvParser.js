@@ -19,6 +19,18 @@ function parseDate(raw) {
   return trimmed;
 }
 
+function parseTime(raw) {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  // "2026-07-26T18:07:00" — ISO with T separator
+  const isoMatch = trimmed.match(/^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}:${isoMatch[2]}`;
+  // "2026-07-26 1807-0400" — UDisc StartDate: HHMM immediately before a UTC offset
+  const spaceMatch = trimmed.match(/^\d{4}-\d{2}-\d{2}\s+(\d{2})(\d{2})[+-]\d{4}/);
+  if (spaceMatch) return `${spaceMatch[1]}:${spaceMatch[2]}`;
+  return '';
+}
+
 function parsePlusMinus(val) {
   if (!val || val.trim() === '' || val.trim().toUpperCase() === 'E') return 0;
   return parseInt(val, 10);
@@ -68,7 +80,9 @@ function parseCSV(buffer, knownPlayers = []) {
   const course = metaRow['coursename'] || metaRow['course'] || '';
   const layout = metaRow['layoutname'] || metaRow['layout'] || '';
   // UDisc uses StartDate; fall back to Date
-  const date = parseDate(metaRow['startdate'] || metaRow['date'] || '');
+  const rawDate = metaRow['startdate'] || metaRow['date'] || '';
+  const date = parseDate(rawDate);
+  const time = parseTime(rawDate);
 
   const scores = {};
   const totals = {};
@@ -90,7 +104,7 @@ function parseCSV(buffer, knownPlayers = []) {
     if (rating !== null) ratings[resolvedName] = rating;
   }
 
-  return { course, layout, date, scores, totals, ratings };
+  return { course, layout, date, time, scores, totals, ratings };
 }
 
 module.exports = { parseCSV, matchName };
