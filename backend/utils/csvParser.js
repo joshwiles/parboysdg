@@ -46,17 +46,30 @@ function parseRating(val) {
   return Number.isFinite(n) ? n : null;
 }
 
+// Some players go by a nickname in the roster but use their real name on
+// UDisc's scorecard (e.g. "Stack" signs up on UDisc as "Nick").
+const NAME_ALIASES = {
+  nick: 'Stack',
+};
+
 // Match a CSV player name against known player names.
 // Handles cases like "Josh W" matching "Josh".
 function matchName(csvName, knownPlayers) {
   if (!csvName) return null;
   const csv = csvName.trim();
+  const csvLower = csv.toLowerCase();
   // 1. Exact match
   if (knownPlayers.includes(csv)) return csv;
-  // 2. Known player name is the start of the CSV name ("Josh" matches "Josh W")
+  // 2. Known alias ("Nick" -> "Stack"), also matching "Nick S" style suffixes
+  for (const [alias, canonical] of Object.entries(NAME_ALIASES)) {
+    if (knownPlayers.includes(canonical) && (csvLower === alias || csvLower.startsWith(alias + ' '))) {
+      return canonical;
+    }
+  }
+  // 3. Known player name is the start of the CSV name ("Josh" matches "Josh W")
   const byKnownPrefix = knownPlayers.find(p => csv.toLowerCase().startsWith(p.toLowerCase() + ' ') || csv.toLowerCase() === p.toLowerCase());
   if (byKnownPrefix) return byKnownPrefix;
-  // 3. CSV name is the start of the known player name
+  // 4. CSV name is the start of the known player name
   const byCsvPrefix = knownPlayers.find(p => p.toLowerCase().startsWith(csv.toLowerCase() + ' '));
   if (byCsvPrefix) return byCsvPrefix;
   return null;
